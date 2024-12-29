@@ -1,0 +1,67 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: Literal(
+            Decimal,
+        ),
+        token: "1234",
+        offset: 0,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 4,
+    },
+    Token {
+        kind: Literal(
+            Hex,
+        ),
+        token: "0x9821",
+        offset: 5,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 11,
+    },
+    Token {
+        kind: Literal(
+            Binary,
+        ),
+        token: "0b011",
+        offset: 12,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 17,
+    },
+    Token {
+        kind: Literal(
+            Hex,
+        ),
+        token: "0xfe10",
+        offset: 18,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 24,
+    },
+    Token {
+        kind: Literal(
+            Decimal,
+        ),
+        token: "100`000`000_1",
+        offset: 25,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 38,
+    },
+]

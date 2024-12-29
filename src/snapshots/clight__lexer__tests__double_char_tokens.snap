@@ -1,0 +1,87 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: PlusEq,
+        token: "+=",
+        offset: 0,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 2,
+    },
+    Token {
+        kind: MinusEq,
+        token: "-=",
+        offset: 3,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 5,
+    },
+    Token {
+        kind: StarEq,
+        token: "*=",
+        offset: 6,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 8,
+    },
+    Token {
+        kind: SlashEq,
+        token: "/=",
+        offset: 9,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 11,
+    },
+    Token {
+        kind: EqEq,
+        token: "==",
+        offset: 12,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 14,
+    },
+    Token {
+        kind: NotEq,
+        token: "!=",
+        offset: 15,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 17,
+    },
+    Token {
+        kind: SmallerEq,
+        token: "<=",
+        offset: 18,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 20,
+    },
+    Token {
+        kind: GreaterEq,
+        token: ">=",
+        offset: 21,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 23,
+    },
+]

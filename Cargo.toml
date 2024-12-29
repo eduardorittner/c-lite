@@ -1,0 +1,8 @@
+[package]
+name = "clight"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+insta = "1.41.1"
+miette = { version = "7.4.0", features = ["fancy"] }

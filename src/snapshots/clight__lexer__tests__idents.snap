@@ -1,0 +1,37 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: Ident,
+        token: "ident",
+        offset: 0,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 5,
+    },
+    Token {
+        kind: Ident,
+        token: "_ident",
+        offset: 6,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 12,
+    },
+    Token {
+        kind: Ident,
+        token: "ident_123",
+        offset: 13,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 22,
+    },
+]

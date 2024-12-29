@@ -1,0 +1,19 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: Literal(
+            String,
+        ),
+        token: "\"\\\"\"",
+        offset: 0,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 4,
+    },
+]

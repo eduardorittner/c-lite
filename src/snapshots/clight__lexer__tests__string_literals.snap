@@ -1,0 +1,55 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: Literal(
+            String,
+        ),
+        token: "\"abc\"",
+        offset: 0,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 5,
+    },
+    Token {
+        kind: Literal(
+            String,
+        ),
+        token: "'abc'",
+        offset: 6,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 11,
+    },
+    Token {
+        kind: Literal(
+            String,
+        ),
+        token: "\"abc'\"",
+        offset: 12,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 18,
+    },
+    Token {
+        kind: Literal(
+            String,
+        ),
+        token: "'abc\"'",
+        offset: 19,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 25,
+    },
+]

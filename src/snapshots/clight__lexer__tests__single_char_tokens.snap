@@ -1,0 +1,127 @@
+---
+source: src/lexer.rs
+expression: result
+snapshot_kind: text
+---
+[
+    Token {
+        kind: Plus,
+        token: "+",
+        offset: 0,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 1,
+    },
+    Token {
+        kind: Minus,
+        token: "-",
+        offset: 2,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 3,
+    },
+    Token {
+        kind: Star,
+        token: "*",
+        offset: 4,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 5,
+    },
+    Token {
+        kind: Slash,
+        token: "/",
+        offset: 6,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 7,
+    },
+    Token {
+        kind: Eq,
+        token: "=",
+        offset: 8,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 9,
+    },
+    Token {
+        kind: Dot,
+        token: ".",
+        offset: 10,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 11,
+    },
+    Token {
+        kind: Comma,
+        token: ",",
+        offset: 12,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 13,
+    },
+    Token {
+        kind: Colon,
+        token: ":",
+        offset: 14,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 15,
+    },
+    Token {
+        kind: Semicolon,
+        token: ";",
+        offset: 16,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 17,
+    },
+    Token {
+        kind: Not,
+        token: "!",
+        offset: 18,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 19,
+    },
+    Token {
+        kind: And,
+        token: "&",
+        offset: 20,
+    },
+    Token {
+        kind: Whitespace,
+        token: " ",
+        offset: 21,
+    },
+    Token {
+        kind: Or,
+        token: "|",
+        offset: 22,
+    },
+    Token {
+        kind: Eof,
+        token: "",
+        offset: 23,
+    },
+]
