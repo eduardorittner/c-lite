@@ -4,8 +4,6 @@ use miette::Result;
 mod ast {
     use crate::lexer::Token;
 
-    enum Node {}
-
     #[derive(Debug, Clone)]
     pub enum ExprKind {
         String(Token),
@@ -143,7 +141,6 @@ use ast::*;
 
 pub struct Parser<'src> {
     src: &'src str,
-    ast: Vec<ExprKind>,
     lexer: Lexer<'src>,
     peeked: Option<Token>,
 }
@@ -152,7 +149,6 @@ impl<'src> Parser<'src> {
     pub fn new(src: &'src str) -> Self {
         Self {
             src,
-            ast: Vec::new(),
             lexer: Lexer::new(src),
             peeked: None,
         }
@@ -174,10 +170,6 @@ impl<'src> Parser<'src> {
             self.peeked = self.lexer.next();
             self.peeked.clone()
         }
-    }
-
-    fn consume(&mut self, expected: TokenKind, msg: &str) -> Result<()> {
-        self.expect(expected, msg).map(|_| ())
     }
 
     fn expect(&mut self, expected: TokenKind, msg: &str) -> Result<Token> {
@@ -260,7 +252,7 @@ impl<'src> Parser<'src> {
     pub fn conditional_expr(&mut self) -> Result<ExprKind> {
         let expr = self.or()?;
 
-        if let Some(token) = match_next!(self, TokenKind::Question) {
+        if let Some(_) = match_next!(self, TokenKind::Question) {
             let yes = self.expr()?;
             self.expect(
                 TokenKind::Colon,
@@ -667,10 +659,8 @@ impl<'src> Parser<'src> {
 
 #[cfg(test)]
 pub mod tests {
-    
-    
+
     use crate::Parser;
-    
 
     fn parse_expr(expr: &str) -> String {
         let mut parser = Parser::new(&expr);
