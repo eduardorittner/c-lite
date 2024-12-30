@@ -5,19 +5,6 @@ pub struct Token {
     pub offset: usize,
 }
 
-use crate::parser::Precedence;
-use miette::Result;
-impl Token {
-    pub fn infix_prec(&self) -> Result<Precedence> {
-        match self.kind {
-            TokenKind::Plus | TokenKind::Minus => Ok(Precedence::AddSub),
-            _ => Err(miette::miette! {
-            labels = vec![miette::LabeledSpan::at(self.offset..self.offset + self.token.len(), "here")],
-            help = format!("Unexpected token: {self:?}"),
-            "Not a valid infix operator token"}),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
@@ -39,6 +26,10 @@ pub enum TokenKind {
     Not,
     And,
     Or,
+    Tilde,
+    Question,
+    Xor,
+    XorEq,
 
     // Comparison Operators
     EqEq,
@@ -49,6 +40,11 @@ pub enum TokenKind {
     Greater,
     SmallerEq,
     Smaller,
+
+    PlusPlus,
+    MinusMinus,
+    GreaterGreater,
+    SmallerSmaller,
 
     // Separators
     OpenParen,
@@ -61,6 +57,7 @@ pub enum TokenKind {
     Dot,          // `.`
     Colon,        // `:`
     Semicolon,    // `;`
+    Arrow,
 
     // boolean
     True,
@@ -80,6 +77,73 @@ pub enum TokenKind {
     Type,
 
     Eof,
+}
+
+impl std::fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenKind::Ident => write!(f, "'identifier'"),
+            TokenKind::Literal(kind) => match kind {
+                LiteralKind::Hex => write!(f, "'hex'"),
+                LiteralKind::Decimal => write!(f, "'decimal'"),
+                LiteralKind::Binary => write!(f, "'binary'"),
+                LiteralKind::String => write!(f, "'string'"),
+            },
+            TokenKind::Whitespace => write!(f, "Whitespace"),
+            TokenKind::Plus => write!(f, "'+'"),
+            TokenKind::PlusEq => write!(f, "'+='"),
+            TokenKind::Minus => write!(f, "'-'"),
+            TokenKind::MinusEq => write!(f, "'-='"),
+            TokenKind::Slash => write!(f, "'/'"),
+            TokenKind::SlashEq => write!(f, "'/='"),
+            TokenKind::Star => write!(f, "'*'"),
+            TokenKind::StarEq => write!(f, "'*='"),
+            TokenKind::Percent => write!(f, "'%'"),
+            TokenKind::Eq => write!(f, "'='"),
+            TokenKind::Not => write!(f, "'!'"),
+            TokenKind::And => write!(f, "'&'"),
+            TokenKind::Or => write!(f, "'|'"),
+            TokenKind::Tilde => write!(f, "'~'"),
+            TokenKind::Question => write!(f, "'?'"),
+            TokenKind::Xor => write!(f, "'^'"),
+            TokenKind::XorEq => write!(f, "'^='"),
+            TokenKind::EqEq => write!(f, "'=='"),
+            TokenKind::NotEq => write!(f, "'!='"),
+            TokenKind::AndAnd => write!(f, "'&&'"),
+            TokenKind::OrOr => write!(f, "'||'"),
+            TokenKind::GreaterEq => write!(f, "'>='"),
+            TokenKind::Greater => write!(f, "'>'"),
+            TokenKind::SmallerEq => write!(f, "'<='"),
+            TokenKind::Smaller => write!(f, "'<'"),
+            TokenKind::PlusPlus => write!(f, "'++'"),
+            TokenKind::MinusMinus => write!(f, "'--'"),
+            TokenKind::GreaterGreater => write!(f, "'>>'"),
+            TokenKind::SmallerSmaller => write!(f, "'<<'"),
+            TokenKind::OpenParen => write!(f, "'('"),
+            TokenKind::CloseParen => write!(f, "')'"),
+            TokenKind::OpenBracket => write!(f, "'{{'"),
+            TokenKind::CloseBracket => write!(f, "'}}'"),
+            TokenKind::OpenBrace => write!(f, "'['"),
+            TokenKind::CloseBrace => write!(f, "']'"),
+            TokenKind::Comma => write!(f, "','"),
+            TokenKind::Dot => write!(f, "'.'"),
+            TokenKind::Colon => write!(f, "':'"),
+            TokenKind::Semicolon => write!(f, "';'"),
+            TokenKind::Arrow => write!(f, "'->'"),
+            TokenKind::True => write!(f, "'true'"),
+            TokenKind::False => write!(f, "'false'"),
+            TokenKind::For => write!(f, "'for'"),
+            TokenKind::If => write!(f, "'if'"),
+            TokenKind::Return => write!(f, "'return'"),
+            TokenKind::While => write!(f, "'while'"),
+            TokenKind::Enum => write!(f, "'enum'"),
+            TokenKind::Struct => write!(f, "'strucT'"),
+            TokenKind::Union => write!(f, "'union'"),
+            TokenKind::TagUnion => write!(f, "'tagUnion'"),
+            TokenKind::Type => write!(f, "'type'"),
+            TokenKind::Eof => write!(f, "'eof'"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -115,6 +179,7 @@ impl<'src> Iterator for Lexer<'src> {
         if self.finished {
             return None;
         }
+
         loop {
             let mut chars = self.rest.chars();
             let char = match chars.next() {
@@ -149,6 +214,9 @@ impl<'src> Iterator for Lexer<'src> {
                 NumberLit,
                 StringLit,
                 IfEqElse(char, TokenKind, TokenKind),
+                ThreePossibilitites(char), // TODO naming????
+                                           // relates to characters which have more than 2 variations
+                                           // e.g. '+' can be '+', '+=' or '++'
             }
             use TokenKind::*;
 
@@ -164,16 +232,18 @@ impl<'src> Iterator for Lexer<'src> {
                 '{' => return simple_token(OpenBrace),
                 '}' => return simple_token(CloseBrace),
                 '%' => return simple_token(Percent),
-                '+' => State::IfEqElse('=', PlusEq, Plus),
-                '-' => State::IfEqElse('=', MinusEq, Minus),
+                '?' => return simple_token(Question),
+                '+' => State::ThreePossibilitites('+'),
+                '-' => State::ThreePossibilitites('-'),
                 '*' => State::IfEqElse('=', StarEq, Star),
                 '/' => State::IfEqElse('=', SlashEq, Slash),
                 '=' => State::IfEqElse('=', EqEq, Eq),
                 '!' => State::IfEqElse('=', NotEq, Not),
-                '>' => State::IfEqElse('=', GreaterEq, Greater),
-                '<' => State::IfEqElse('=', SmallerEq, Smaller),
+                '>' => State::ThreePossibilitites('>'),
+                '<' => State::ThreePossibilitites('<'),
                 '&' => State::IfEqElse('&', AndAnd, And),
                 '|' => State::IfEqElse('|', OrOr, Or),
+                '^' => State::IfEqElse('=', XorEq, Xor),
                 '"' => State::StringLit,
                 '\'' => State::StringLit,
                 '0'..='9' => State::NumberLit,
@@ -190,16 +260,9 @@ impl<'src> Iterator for Lexer<'src> {
 
                     let whitespace = &char_onwards[..first_non_whitespace];
                     let whitespace_offset = whitespace.len() - char.len_utf8();
-                    let token = Some(Token {
-                        kind: TokenKind::Whitespace,
-                        token: char_onwards[..whitespace.len()].to_string(),
-                        offset: char_offset,
-                    });
-
                     self.offset += whitespace_offset;
                     self.rest = &self.rest[whitespace_offset..];
-
-                    return token;
+                    continue;
                 }
                 State::Ident => {
                     let first_non_ident = char_onwards
@@ -250,6 +313,111 @@ impl<'src> Iterator for Lexer<'src> {
                             token: char_str.to_string(),
                             offset: char_offset,
                         });
+                    }
+                }
+                State::ThreePossibilitites(char) => {
+                    if self.rest.starts_with('=') {
+                        let token = char_onwards[..char_str.len() + char.len_utf8()].to_string();
+                        self.offset += char.len_utf8();
+                        self.rest = &self.rest[char.len_utf8()..];
+                        match char {
+                            '+' => {
+                                return Some(Token {
+                                    kind: TokenKind::PlusEq,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '-' => {
+                                return Some(Token {
+                                    kind: TokenKind::MinusEq,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '>' => {
+                                return Some(Token {
+                                    kind: TokenKind::GreaterEq,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '<' => {
+                                return Some(Token {
+                                    kind: TokenKind::SmallerEq,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            _ => unreachable!(),
+                        }
+                    } else if self.rest.starts_with(char) {
+                        let token = char_onwards[..char_str.len() + char.len_utf8()].to_string();
+                        self.offset += char.len_utf8();
+                        self.rest = &self.rest[char.len_utf8()..];
+                        match char {
+                            '+' => {
+                                return Some(Token {
+                                    kind: TokenKind::PlusPlus,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '-' => {
+                                return Some(Token {
+                                    kind: TokenKind::MinusMinus,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '>' => {
+                                return Some(Token {
+                                    kind: TokenKind::GreaterGreater,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            '<' => {
+                                return Some(Token {
+                                    kind: TokenKind::SmallerSmaller,
+                                    token,
+                                    offset: char_offset,
+                                })
+                            }
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        match char {
+                            '+' => {
+                                return Some(Token {
+                                    kind: TokenKind::Plus,
+                                    token: char_str.to_string(),
+                                    offset: char_offset,
+                                })
+                            }
+                            '-' => {
+                                return Some(Token {
+                                    kind: TokenKind::Minus,
+                                    token: char_str.to_string(),
+                                    offset: char_offset,
+                                })
+                            }
+                            '>' => {
+                                return Some(Token {
+                                    kind: TokenKind::Greater,
+                                    token: char_str.to_string(),
+                                    offset: char_offset,
+                                })
+                            }
+                            '<' => {
+                                return Some(Token {
+                                    kind: TokenKind::Smaller,
+                                    token: char_str.to_string(),
+                                    offset: char_offset,
+                                })
+                            }
+                            _ => unreachable!(),
+                        }
                     }
                 }
                 State::NumberLit => {
@@ -317,8 +485,8 @@ impl<'src> Iterator for Lexer<'src> {
 }
 
 mod tests {
-    use crate::lexer::*;
-    use insta::assert_debug_snapshot;
+    
+    
 
     #[test]
     fn single_char_tokens() {
@@ -330,7 +498,7 @@ mod tests {
 
     #[test]
     fn double_char_tokens() {
-        let source = "+= -= *= /= == != <= >=";
+        let source = "+= -= *= /= == != <= >= << >>";
         let lexer = Lexer::new(&source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);

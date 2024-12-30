@@ -10,19 +10,9 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 2,
-    },
-    Token {
         kind: For,
         token: "for",
         offset: 3,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 6,
     },
     Token {
         kind: While,
@@ -30,19 +20,9 @@ snapshot_kind: text
         offset: 7,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 12,
-    },
-    Token {
         kind: Return,
         token: "return",
         offset: 13,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 19,
     },
     Token {
         kind: Struct,
@@ -50,19 +30,9 @@ snapshot_kind: text
         offset: 20,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 26,
-    },
-    Token {
         kind: Enum,
         token: "enum",
         offset: 27,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 31,
     },
     Token {
         kind: Union,
@@ -70,19 +40,9 @@ snapshot_kind: text
         offset: 32,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 37,
-    },
-    Token {
         kind: TagUnion,
         token: "tagunion",
         offset: 38,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 46,
     },
     Token {
         kind: Type,

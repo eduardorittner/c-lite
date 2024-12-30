@@ -12,21 +12,11 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 4,
-    },
-    Token {
         kind: Literal(
             Hex,
         ),
         token: "0x9821",
         offset: 5,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 11,
     },
     Token {
         kind: Literal(
@@ -36,21 +26,11 @@ snapshot_kind: text
         offset: 12,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 17,
-    },
-    Token {
         kind: Literal(
             Hex,
         ),
         token: "0xfe10",
         offset: 18,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 24,
     },
     Token {
         kind: Literal(

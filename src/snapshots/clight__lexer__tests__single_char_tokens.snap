@@ -10,19 +10,9 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 1,
-    },
-    Token {
         kind: Minus,
         token: "-",
         offset: 2,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 3,
     },
     Token {
         kind: Star,
@@ -30,19 +20,9 @@ snapshot_kind: text
         offset: 4,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 5,
-    },
-    Token {
         kind: Slash,
         token: "/",
         offset: 6,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 7,
     },
     Token {
         kind: Eq,
@@ -50,19 +30,9 @@ snapshot_kind: text
         offset: 8,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 9,
-    },
-    Token {
         kind: Dot,
         token: ".",
         offset: 10,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 11,
     },
     Token {
         kind: Comma,
@@ -70,19 +40,9 @@ snapshot_kind: text
         offset: 12,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 13,
-    },
-    Token {
         kind: Colon,
         token: ":",
         offset: 14,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 15,
     },
     Token {
         kind: Semicolon,
@@ -90,29 +50,14 @@ snapshot_kind: text
         offset: 16,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 17,
-    },
-    Token {
         kind: Not,
         token: "!",
         offset: 18,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 19,
-    },
-    Token {
         kind: And,
         token: "&",
         offset: 20,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 21,
     },
     Token {
         kind: Or,

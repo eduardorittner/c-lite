@@ -10,19 +10,9 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 2,
-    },
-    Token {
         kind: MinusEq,
         token: "-=",
         offset: 3,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 5,
     },
     Token {
         kind: StarEq,
@@ -30,19 +20,9 @@ snapshot_kind: text
         offset: 6,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 8,
-    },
-    Token {
         kind: SlashEq,
         token: "/=",
         offset: 9,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 11,
     },
     Token {
         kind: EqEq,
@@ -50,19 +30,9 @@ snapshot_kind: text
         offset: 12,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 14,
-    },
-    Token {
         kind: NotEq,
         token: "!=",
         offset: 15,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 17,
     },
     Token {
         kind: SmallerEq,
@@ -70,18 +40,23 @@ snapshot_kind: text
         offset: 18,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 20,
-    },
-    Token {
         kind: GreaterEq,
         token: ">=",
         offset: 21,
     },
     Token {
+        kind: SmallerSmaller,
+        token: "<<",
+        offset: 24,
+    },
+    Token {
+        kind: GreaterGreater,
+        token: ">>",
+        offset: 27,
+    },
+    Token {
         kind: Eof,
         token: "",
-        offset: 23,
+        offset: 29,
     },
 ]

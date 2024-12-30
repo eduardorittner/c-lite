@@ -1,13 +1,14 @@
 mod lexer;
+pub use lexer::Lexer;
 
 mod parser;
 use miette::Result;
-use parser::Parser;
+pub use parser::Parser;
 
 fn main() -> Result<()> {
-    let source = "0b0c";
+    let source = "a = *p++";
     let mut parser = Parser::new(&source);
     let r = parser.parse()?;
-    println!("{r:?}");
+    println!("{r}");
     Ok(())
 }

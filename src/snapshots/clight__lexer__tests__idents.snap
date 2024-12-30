@@ -10,19 +10,9 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 5,
-    },
-    Token {
         kind: Ident,
         token: "_ident",
         offset: 6,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 12,
     },
     Token {
         kind: Ident,

@@ -12,11 +12,6 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 5,
-    },
-    Token {
         kind: Literal(
             String,
         ),
@@ -24,21 +19,11 @@ snapshot_kind: text
         offset: 6,
     },
     Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 11,
-    },
-    Token {
         kind: Literal(
             String,
         ),
         token: "\"abc'\"",
         offset: 12,
-    },
-    Token {
-        kind: Whitespace,
-        token: " ",
-        offset: 18,
     },
     Token {
         kind: Literal(
