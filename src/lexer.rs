@@ -5,7 +5,6 @@ pub struct Token {
     pub offset: usize,
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     Ident,
@@ -68,6 +67,7 @@ pub enum TokenKind {
     If,
     Return,
     While,
+    Let,
 
     // Data types
     Enum,
@@ -75,6 +75,14 @@ pub enum TokenKind {
     Union,
     TagUnion,
     Type,
+
+    // Basic Types
+    Void,
+    Char,
+    Int,
+    UInt,
+    Float,
+    Bool,
 
     Eof,
 }
@@ -142,6 +150,13 @@ impl std::fmt::Display for TokenKind {
             TokenKind::TagUnion => write!(f, "'tagUnion'"),
             TokenKind::Type => write!(f, "'type'"),
             TokenKind::Eof => write!(f, "'eof'"),
+            TokenKind::Void => write!(f, "'void'"),
+            TokenKind::Char => write!(f, "'char'"),
+            TokenKind::Int => write!(f, "'int'"),
+            TokenKind::UInt => write!(f, "'uint'"),
+            TokenKind::Float => write!(f, "'float'"),
+            TokenKind::Bool => write!(f, "'bool'"),
+            TokenKind::Let => write!(f, "'let'"),
         }
     }
 }
@@ -273,6 +288,7 @@ impl<'src> Iterator for Lexer<'src> {
                     let lit_offset = lit.len() - char.len_utf8();
 
                     let kind = match lit {
+                        "let" => Let,
                         "for" => For,
                         "if" => If,
                         "return" => Return,
@@ -284,6 +300,11 @@ impl<'src> Iterator for Lexer<'src> {
                         "type" => Type,
                         "true" => True,
                         "false" => False,
+                        "void" => Void,
+                        "char" => Char,
+                        "int" => Int,
+                        "uint" => UInt,
+                        "bool" => Bool,
                         _ => Ident,
                     };
 
@@ -485,8 +506,6 @@ impl<'src> Iterator for Lexer<'src> {
 }
 
 mod tests {
-    
-    
 
     #[test]
     fn single_char_tokens() {

@@ -4,6 +4,9 @@ use miette::Result;
 mod ast {
     use crate::lexer::Token;
 
+    // Expressions are anything in the language that has an associated value
+    // or that performs some computation over other expressions
+    // Note that assignments such as "a = 1" are also (binary) expressions
     #[derive(Debug, Clone)]
     pub enum ExprKind {
         String(Token),
@@ -52,12 +55,58 @@ mod ast {
         },
     }
 
+    // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
+    pub struct Decl {
+        pub token: Token,
+        pub kind: DeclKind,
+    }
+
+    pub enum DeclKind {
+        VarDecl {
+            ident: Token,
+            spec: Vec<TypeSpec>,
+            init: Init,
+        },
+        TypeDecl {
+            spec: Vec<TypeSpec>,
+            newtype: Token,
+        },
+    }
+
+    pub enum Init {
+        Scalar(ExprKind),
+        Aggregate(Vec<Box<Init>>),
+    }
+
+    pub struct TypeSpec {
+        pub token: Token,
+        pub kind: TypeSpecKind,
+    }
+
+    pub enum TypeSpecKind {
+        Type,
+        Pointer,
+    }
+
+    pub struct Stmt;
+
     pub trait PrettyPrint {
         fn pretty_fmt(&self, depth: usize) -> String;
 
         fn indent_fmt(&self, depth: usize) -> String {
             let indent = "|".repeat(depth);
             format!("{}{}", indent, self.pretty_fmt(depth))
+        }
+    }
+
+    impl PrettyPrint for Decl {
+        fn pretty_fmt(&self, depth: usize) -> String {
+            match self.kind {
+                DeclKind::VarDecl { ident, spec, init } => {
+                    format!("Declaration: var: {} type: {} value: {}", ident, spec, init)
+                }
+                DeclKind::TypeDecl { spec, newtype } => format!(),
+            }
         }
     }
 
@@ -198,8 +247,59 @@ impl<'src> Parser<'src> {
         }
     }
 
-    pub fn parse(&'src mut self) -> Result<ExprKind> {
+    pub fn parse(&mut self) -> Result<ExprKind> {
         self.expr()
+    }
+
+    // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
+    // <var-decl> ::= let IDENT : <type-spec> = <init>
+    pub fn decl(&mut self) -> Result<Decl> {
+        if let Some(token) = match_next!(self, TokenKind::Let) {
+            let ident = self.expect(TokenKind::Ident, "Expected var name after 'let' keyword")?;
+            self.expect(TokenKind::Colon, "Expected ':' after var name")?;
+            let spec = self.type_spec()?;
+            self.expect(TokenKind::Eq, "Expected '=' after var name")?;
+            let init = self.initializer()?;
+            Ok(Decl {
+                token,
+                kind: DeclKind::VarDecl { ident, spec, init },
+            })
+        } else {
+            todo!()
+        }
+    }
+
+    pub fn type_spec(&mut self) -> Result<Vec<TypeSpec>> {
+        let mut specs = Vec::new();
+
+        while let Some(token) = match_next!(self, TokenKind::Ident) {
+            specs.push(TypeSpec {
+                token,
+                kind: TypeSpecKind::Type,
+            })
+        }
+
+        while let Some(token) = match_next!(self, TokenKind::Star) {
+            specs.push(TypeSpec {
+                token,
+                kind: TypeSpecKind::Pointer,
+            })
+        }
+
+        if specs.is_empty() {
+            Err(miette::miette!(
+                "Expected type spec, got: {:?}",
+                self.peek().unwrap()
+            ))
+        } else {
+            Ok(specs)
+        }
+    }
+
+    pub fn initializer(&mut self) -> Result<Init> {
+        // TODO parse struct initializers and so on
+        let expr = self.conditional_expr()?;
+        Ok(Init::Scalar(expr))
     }
 
     // <expr> ::= <assign-expr> | <expr> , <assign-expr>
