@@ -6,9 +6,9 @@ use miette::Result;
 pub use parser::Parser;
 
 fn main() -> Result<()> {
-    let source = "a = *p++";
+    let source = "let a: int = 1";
     let mut parser = Parser::new(&source);
-    let r = parser.parse()?;
+    let r = parser.decl()?;
     println!("{r}");
     Ok(())
 }

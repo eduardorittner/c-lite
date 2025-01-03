@@ -56,15 +56,17 @@ mod ast {
     }
 
     // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
+    #[derive(Debug, Clone)]
     pub struct Decl {
         pub token: Token,
         pub kind: DeclKind,
     }
 
+    #[derive(Debug, Clone)]
     pub enum DeclKind {
         VarDecl {
             ident: Token,
-            spec: Vec<TypeSpec>,
+            spec: Option<Vec<TypeSpec>>,
             init: Init,
         },
         TypeDecl {
@@ -73,18 +75,22 @@ mod ast {
         },
     }
 
+    #[derive(Debug, Clone)]
     pub enum Init {
         Scalar(ExprKind),
         Aggregate(Vec<Box<Init>>),
     }
 
+    #[derive(Debug, Clone)]
     pub struct TypeSpec {
         pub token: Token,
         pub kind: TypeSpecKind,
     }
 
+    #[derive(Debug, Clone)]
     pub enum TypeSpecKind {
         Type,
+        UserType,
         Pointer,
     }
 
@@ -100,13 +106,31 @@ mod ast {
     }
 
     impl PrettyPrint for Decl {
-        fn pretty_fmt(&self, depth: usize) -> String {
+        fn pretty_fmt(&self, _: usize) -> String {
             match self.kind {
-                DeclKind::VarDecl { ident, spec, init } => {
-                    format!("Declaration: var: {} type: {} value: {}", ident, spec, init)
+                DeclKind::VarDecl {
+                    ref ident,
+                    ref spec,
+                    ref init,
+                } => {
+                    format!(
+                        "Declaration: var: {} type: {:?} value: {:?}",
+                        ident.token, spec, init
+                    )
                 }
-                DeclKind::TypeDecl { spec, newtype } => format!(),
+                DeclKind::TypeDecl {
+                    ref spec,
+                    ref newtype,
+                } => {
+                    format!("Type Decl: type: {:?} newtype: {:?}", spec, newtype)
+                }
             }
+        }
+    }
+
+    impl std::fmt::Display for Decl {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.indent_fmt(0))
         }
     }
 
@@ -253,11 +277,15 @@ impl<'src> Parser<'src> {
 
     // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
     // <var-decl> ::= let IDENT : <type-spec> = <init>
+    //              | let IDENT = <init>
     pub fn decl(&mut self) -> Result<Decl> {
         if let Some(token) = match_next!(self, TokenKind::Let) {
             let ident = self.expect(TokenKind::Ident, "Expected var name after 'let' keyword")?;
-            self.expect(TokenKind::Colon, "Expected ':' after var name")?;
-            let spec = self.type_spec()?;
+            let spec = if let Some(_colon) = match_next!(self, TokenKind::Colon) {
+                Some(self.type_spec()?)
+            } else {
+                None
+            };
             self.expect(TokenKind::Eq, "Expected '=' after var name")?;
             let init = self.initializer()?;
             Ok(Decl {
@@ -272,7 +300,16 @@ impl<'src> Parser<'src> {
     pub fn type_spec(&mut self) -> Result<Vec<TypeSpec>> {
         let mut specs = Vec::new();
 
-        while let Some(token) = match_next!(self, TokenKind::Ident) {
+        while let Some(token) = match_next!(
+            self,
+            TokenKind::Ident
+                | TokenKind::Int
+                | TokenKind::UInt
+                | TokenKind::Char
+                | TokenKind::Void
+                | TokenKind::Bool
+                | TokenKind::Float
+        ) {
             specs.push(TypeSpec {
                 token,
                 kind: TypeSpecKind::Type,
@@ -524,11 +561,11 @@ impl<'src> Parser<'src> {
         }
     }
 
-    // <muldiv-expr> ::= <cast-expr>            | <muldiv-expr> '*' <cast-expr>
-    //                                          | <muldiv-expr> '/' <cast-expr>
-    //                                          | <muldiv-expr> '%' <cast-expr>
+    // <muldiv-expr> ::= <unary-expr>            | <muldiv-expr> '*' <unary-expr>
+    //                                          | <muldiv-expr> '/' <unary-expr>
+    //                                          | <muldiv-expr> '%' <unary-expr>
     pub fn muldiv(&mut self) -> Result<ExprKind> {
-        let expr = self.cast_expr()?;
+        let expr = self.unary_expr()?;
 
         if let Some(token) = match_next!(
             self,
@@ -545,34 +582,10 @@ impl<'src> Parser<'src> {
         }
     }
 
-    // TODO typename should return DeclType not ExprKind
-    pub fn typename(&mut self) -> Result<ExprKind> {
-        todo!()
-    }
-
-    // <cast-expr> ::= <unary-expr>
-    //               | ( <type-name> ) <cast-expression>
-    pub fn cast_expr(&mut self) -> Result<ExprKind> {
-        let token = self.peek().unwrap();
-
-        match token.kind {
-            TokenKind::OpenParen => {
-                self.advance();
-                let type_name = self.typename()?;
-                self.expect(TokenKind::CloseParen, "Expected")?;
-                let expr = self.cast_expr()?;
-
-                // TODO define cast expr
-                todo!()
-            }
-            _ => self.unary_expr(),
-        }
-    }
-
     // <unary-expr> ::= <postfix-expr>
     //                | ++ <unary-expr>
     //                | -- <unary-expr>
-    //                | <unary-operator> <cast-expr>
+    //                | <unary-operator> <unary-expr>
     //                | sizeof <unary-expr>
     //                | sizeof ( <type-name> )
     //
@@ -596,7 +609,7 @@ impl<'src> Parser<'src> {
                 | TokenKind::Minus
                 | TokenKind::Tilde
         ) {
-            let rhs = self.cast_expr()?;
+            let rhs = self.unary_expr()?;
 
             Ok(ExprKind::Unary {
                 op: token,
@@ -761,6 +774,7 @@ impl<'src> Parser<'src> {
 pub mod tests {
 
     use crate::Parser;
+    use insta::assert_debug_snapshot;
 
     fn parse_expr(expr: &str) -> String {
         let mut parser = Parser::new(&expr);
@@ -849,5 +863,37 @@ pub mod tests {
         let source = "a = *p++";
         let expected = "Assign:\n|'a'\n|Unary: '*'\n||Postfix: '++'\n|||'p'";
         assert_eq!(expected, parse_expr(source));
+    }
+
+    #[test]
+    fn var_decl_with_type() {
+        let source = "let a: int = 202";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn var_decl_no_type() {
+        let source = "let a = 202";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn var_decl_complicated_expr() {
+        let source = "let a = 1 + 2 * 3 << 4 + (2)";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn var_decl_unary_expr() {
+        let source = "let a = !1";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result);
     }
 }

@@ -505,7 +505,10 @@ impl<'src> Iterator for Lexer<'src> {
     }
 }
 
+#[cfg(test)]
 mod tests {
+    use crate::lexer::*;
+    use insta::assert_debug_snapshot;
 
     #[test]
     fn single_char_tokens() {

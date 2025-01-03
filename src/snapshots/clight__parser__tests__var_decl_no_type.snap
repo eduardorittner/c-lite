@@ -1,0 +1,27 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Decl {
+        token: Token {
+            kind: Let,
+            token: "let",
+            offset: 0,
+        },
+        kind: VarDecl {
+            ident: Token {
+                kind: Ident,
+                token: "a",
+                offset: 4,
+            },
+            spec: None,
+            init: Scalar(
+                Number(
+                    202,
+                ),
+            ),
+        },
+    },
+)
