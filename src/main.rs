@@ -6,7 +6,7 @@ use miette::Result;
 pub use parser::Parser;
 
 fn main() -> Result<()> {
-    let source = "let a: int = 1";
+    let source = "struct a { b : void, }";
     let mut parser = Parser::new(&source);
     let r = parser.decl()?;
     println!("{r}");

@@ -17,16 +17,14 @@ Ok(
                 offset: 4,
             },
             spec: Some(
-                [
-                    TypeSpec {
-                        token: Token {
-                            kind: Int,
-                            token: "int",
-                            offset: 7,
-                        },
-                        kind: Type,
+                TypeSpec {
+                    token: Token {
+                        kind: Int,
+                        token: "int",
+                        offset: 7,
                     },
-                ],
+                    kind: Type,
+                },
             ),
             init: Scalar(
                 Number(

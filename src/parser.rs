@@ -66,12 +66,16 @@ mod ast {
     pub enum DeclKind {
         VarDecl {
             ident: Token,
-            spec: Option<Vec<TypeSpec>>,
+            spec: Option<TypeSpec>,
             init: Init,
         },
         TypeDecl {
-            spec: Vec<TypeSpec>,
+            oldtype: TypeSpec,
             newtype: Token,
+        },
+        StructDecl {
+            name: Token,
+            fields: Vec<Field>,
         },
     }
 
@@ -94,7 +98,37 @@ mod ast {
         Pointer,
     }
 
-    pub struct Stmt;
+    #[derive(Debug, Clone)]
+    pub struct Field {
+        pub name: Token,
+        pub r#type: TypeSpec,
+    }
+
+    pub struct Stmt {
+        token: Token,
+        kind: StmtKind,
+    }
+
+    pub enum StmtKind {
+        Compound {
+            statements: Vec<Stmt>,
+        },
+        Decl {
+            declaration: Decl,
+        },
+        Expression {
+            expression: ExprKind,
+        },
+        If {
+            cond: ExprKind,
+            iftrue: Box<Stmt>,
+            iffalse: Option<Box<Stmt>>,
+        },
+        While {
+            cond: ExprKind,
+            block: Box<Stmt>,
+        },
+    }
 
     pub trait PrettyPrint {
         fn pretty_fmt(&self, depth: usize) -> String;
@@ -119,10 +153,16 @@ mod ast {
                     )
                 }
                 DeclKind::TypeDecl {
-                    ref spec,
+                    oldtype: ref spec,
                     ref newtype,
                 } => {
                     format!("Type Decl: type: {:?} newtype: {:?}", spec, newtype)
+                }
+                DeclKind::StructDecl {
+                    ref name,
+                    ref fields,
+                } => {
+                    format!("Struct Decl: name: {}, fields: {:?}", name.token, fields)
                 }
             }
         }
@@ -275,61 +315,132 @@ impl<'src> Parser<'src> {
         self.expr()
     }
 
+    pub fn stmt(&mut self) -> Result<Stmt> {
+        todo!()
+    }
+
     // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
     // <var-decl> ::= let IDENT : <type-spec> = <init>
     //              | let IDENT = <init>
+    // <type-decl> ::= type IDENT = IDENT
+    // <struct-decl> ::= struct IDENT { <struct-field> }
+    // <struct-field> ::= IDENT : TypeSpec ,
     pub fn decl(&mut self) -> Result<Decl> {
-        if let Some(token) = match_next!(self, TokenKind::Let) {
-            let ident = self.expect(TokenKind::Ident, "Expected var name after 'let' keyword")?;
-            let spec = if let Some(_colon) = match_next!(self, TokenKind::Colon) {
-                Some(self.type_spec()?)
-            } else {
-                None
-            };
-            self.expect(TokenKind::Eq, "Expected '=' after var name")?;
-            let init = self.initializer()?;
-            Ok(Decl {
-                token,
-                kind: DeclKind::VarDecl { ident, spec, init },
-            })
+        if let Some(token) = self.peek().clone() {
+            match token.kind {
+                TokenKind::Type => self.type_decl(),
+                TokenKind::Let => self.var_decl(),
+                TokenKind::Struct => self.struct_decl(),
+                _ => {
+                    let kind = token.kind;
+                    Err(miette::miette! {
+                        labels = vec![miette::LabeledSpan::at(token.offset..token.offset + token.token.len(), "here")],
+                        "Expected a declaration, got: {kind}"
+                    }.with_source_code(self.src.to_string()))
+                }
+            }
         } else {
-            todo!()
+            unreachable!()
         }
     }
 
-    pub fn type_spec(&mut self) -> Result<Vec<TypeSpec>> {
-        let mut specs = Vec::new();
+    pub fn var_decl(&mut self) -> Result<Decl> {
+        let token = self.expect(TokenKind::Let, "Should have 'let' keyword here")?;
+        let ident = self.expect(TokenKind::Ident, "Expected var name after 'let' keyword")?;
+        let spec = if let Some(_colon) = match_next!(self, TokenKind::Colon) {
+            Some(self.type_spec()?)
+        } else {
+            None
+        };
+        self.expect(TokenKind::Eq, "Expected '=' after var name")?;
+        let init = self.initializer()?;
+        Ok(Decl {
+            token,
+            kind: DeclKind::VarDecl { ident, spec, init },
+        })
+    }
 
-        while let Some(token) = match_next!(
+    pub fn type_decl(&mut self) -> Result<Decl> {
+        let token = self.expect(TokenKind::Type, "Should have type keyword")?;
+        let newtype = self.expect(TokenKind::Ident, "Expected ident after 'type' keyword")?;
+        self.expect(TokenKind::Eq, "Expected '='")?;
+        if let Ok(oldtype) = self.type_spec() {
+            Ok(Decl {
+                token,
+                kind: DeclKind::TypeDecl { oldtype, newtype },
+            })
+        } else {
+            let wrong_token = self.advance().unwrap();
+            let wrong_kind = wrong_token.kind;
+            Err(miette::miette! {
+                    labels = vec![miette::LabeledSpan::at(wrong_token.offset..wrong_token.offset+wrong_token.token.len(), "here")],
+                    "Expected a valid type, got: {wrong_kind}",
+                }.with_source_code(self.src.to_string()))
+        }
+    }
+
+    // <struct-decl> ::= struct IDENT { <struct-field-list> }
+    // <struct-field-list> ::= <struct-field-list> , <struct-field>
+    // <struct-field> ::= IDENT : TypeSpec ,
+    pub fn struct_decl(&mut self) -> Result<Decl> {
+        let struct_token = self.expect(TokenKind::Struct, "unreachable")?;
+        let name = self.expect(TokenKind::Ident, "Expected struct name")?;
+        self.expect(TokenKind::OpenBrace, "Expected open brace")?;
+        let mut fields = Vec::new();
+
+        while let Some(field_name) = match_next!(self, TokenKind::Ident) {
+            self.expect(TokenKind::Colon, "Expected colon ':' after field name")?;
+            let spec = self.type_spec()?;
+            fields.push(Field {
+                name: field_name,
+                r#type: spec,
+            });
+
+            if let Some(_) = match_next!(self, TokenKind::Comma) {
+            } else {
+                break;
+            }
+        }
+
+        if fields.is_empty() {
+            let token = self.advance().unwrap();
+            return            Err(miette::miette! {
+                    labels = vec![miette::LabeledSpan::at(token.offset..token.offset+token.token.len(), "here")],
+                    "Expected a struct field identifier, got: {token:?}",
+                }.with_source_code(self.src.to_string()));
+        }
+
+        self.expect(TokenKind::CloseBrace, "Expected close brace")?;
+        Ok(Decl {
+            token: struct_token,
+            kind: DeclKind::StructDecl { name, fields },
+        })
+    }
+
+    pub fn type_spec(&mut self) -> Result<TypeSpec> {
+        if let Some(token) = match_next!(
             self,
-            TokenKind::Ident
-                | TokenKind::Int
+            TokenKind::Int
                 | TokenKind::UInt
                 | TokenKind::Char
                 | TokenKind::Void
                 | TokenKind::Bool
                 | TokenKind::Float
         ) {
-            specs.push(TypeSpec {
+            Ok(TypeSpec {
                 token,
                 kind: TypeSpecKind::Type,
             })
-        }
-
-        while let Some(token) = match_next!(self, TokenKind::Star) {
-            specs.push(TypeSpec {
+        } else if let Some(token) = match_next!(self, TokenKind::Ident) {
+            Ok(TypeSpec {
                 token,
-                kind: TypeSpecKind::Pointer,
+                kind: TypeSpecKind::UserType,
             })
-        }
-
-        if specs.is_empty() {
+        } else {
             Err(miette::miette!(
                 "Expected type spec, got: {:?}",
                 self.peek().unwrap()
             ))
-        } else {
-            Ok(specs)
         }
     }
 
@@ -895,5 +1006,78 @@ pub mod tests {
         let mut parser = Parser::new(&source);
         let result = parser.decl();
         assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn type_decl() {
+        let source = "type mytype = int";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn type_decl_usertype() {
+        let source = "type mytype = myusertype";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn type_decl_expr() {
+        // Assert that we get an error
+        let source = "type wrongtype = 1";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn invalid_decl_start() {
+        let source = "void wrongtype = 1";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn empty_decl() {
+        let source = "";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn struct_decl() {
+        let source = "struct a { field: void }";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn composite_struct_decl() {
+        let source = "struct b { field: void, this: char}";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn wrong_struct_decl() {
+        let source = "struct b {}";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn struct_name_as_type() {
+        let source = "struct void {a: char}";
+        let mut parser = Parser::new(&source);
+        let result = parser.decl();
+        assert_debug_snapshot!(result)
     }
 }

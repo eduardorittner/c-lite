@@ -1,0 +1,30 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Err(
+    MietteDiagnostic {
+        message: "Expected a valid type, got: 'decimal'",
+        code: None,
+        severity: None,
+        help: None,
+        url: None,
+        labels: Some(
+            [
+                LabeledSpan {
+                    label: Some(
+                        "here",
+                    ),
+                    span: SourceSpan {
+                        offset: SourceOffset(
+                            17,
+                        ),
+                        length: 1,
+                    },
+                    primary: false,
+                },
+            ],
+        ),
+    },
+)

@@ -1,0 +1,38 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Decl {
+        token: Token {
+            kind: Struct,
+            token: "struct",
+            offset: 0,
+        },
+        kind: StructDecl {
+            name: Token {
+                kind: Ident,
+                token: "a",
+                offset: 7,
+            },
+            fields: [
+                Field {
+                    name: Token {
+                        kind: Ident,
+                        token: "field",
+                        offset: 11,
+                    },
+                    type: TypeSpec {
+                        token: Token {
+                            kind: Void,
+                            token: "void",
+                            offset: 18,
+                        },
+                        kind: Type,
+                    },
+                },
+            ],
+        },
+    },
+)

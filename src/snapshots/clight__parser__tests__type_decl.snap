@@ -1,0 +1,29 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Decl {
+        token: Token {
+            kind: Type,
+            token: "type",
+            offset: 0,
+        },
+        kind: TypeDecl {
+            oldtype: TypeSpec {
+                token: Token {
+                    kind: Int,
+                    token: "int",
+                    offset: 14,
+                },
+                kind: Type,
+            },
+            newtype: Token {
+                kind: Ident,
+                token: "mytype",
+                offset: 5,
+            },
+        },
+    },
+)

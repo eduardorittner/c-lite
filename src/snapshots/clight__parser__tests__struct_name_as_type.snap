@@ -1,0 +1,32 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Err(
+    MietteDiagnostic {
+        message: "Expected struct name",
+        code: None,
+        severity: None,
+        help: Some(
+            "Unexpected token: Token { kind: Void, token: \"void\", offset: 7 }",
+        ),
+        url: None,
+        labels: Some(
+            [
+                LabeledSpan {
+                    label: Some(
+                        "here",
+                    ),
+                    span: SourceSpan {
+                        offset: SourceOffset(
+                            7,
+                        ),
+                        length: 4,
+                    },
+                    primary: false,
+                },
+            ],
+        ),
+    },
+)
