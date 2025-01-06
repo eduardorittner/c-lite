@@ -1,0 +1,117 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Comma {
+        lhs: Comma {
+            lhs: Binary {
+                lhs: Ident(
+                    Token {
+                        kind: Ident,
+                        token: "a",
+                        offset: 0,
+                    },
+                ),
+                op: Token {
+                    kind: Plus,
+                    token: "+",
+                    offset: 2,
+                },
+                rhs: Number(
+                    2,
+                ),
+            },
+            op: Token {
+                kind: Comma,
+                token: ",",
+                offset: 5,
+            },
+            rhs: Binary {
+                lhs: Postfix {
+                    lhs: Ident(
+                        Token {
+                            kind: Ident,
+                            token: "a",
+                            offset: 7,
+                        },
+                    ),
+                    op: Token {
+                        kind: PlusPlus,
+                        token: "++",
+                        offset: 8,
+                    },
+                },
+                op: Token {
+                    kind: Plus,
+                    token: "+",
+                    offset: 11,
+                },
+                rhs: Number(
+                    3,
+                ),
+            },
+        },
+        op: Token {
+            kind: Comma,
+            token: ",",
+            offset: 14,
+        },
+        rhs: Binary {
+            lhs: Binary {
+                lhs: Unary {
+                    op: Token {
+                        kind: Minus,
+                        token: "-",
+                        offset: 16,
+                    },
+                    rhs: Number(
+                        1,
+                    ),
+                },
+                op: Token {
+                    kind: Star,
+                    token: "*",
+                    offset: 19,
+                },
+                rhs: Postfix {
+                    lhs: Ident(
+                        Token {
+                            kind: Ident,
+                            token: "a",
+                            offset: 21,
+                        },
+                    ),
+                    op: Token {
+                        kind: PlusPlus,
+                        token: "++",
+                        offset: 22,
+                    },
+                },
+            },
+            op: Token {
+                kind: Minus,
+                token: "-",
+                offset: 25,
+            },
+            rhs: CompoundAssign {
+                lhs: Ident(
+                    Token {
+                        kind: Ident,
+                        token: "b",
+                        offset: 29,
+                    },
+                ),
+                op: Token {
+                    kind: PlusPlus,
+                    token: "++",
+                    offset: 27,
+                },
+                rhs: Number(
+                    1,
+                ),
+            },
+        },
+    },
+)

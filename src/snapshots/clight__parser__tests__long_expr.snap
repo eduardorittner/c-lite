@@ -1,0 +1,64 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Binary {
+        lhs: Binary {
+            lhs: Binary {
+                lhs: Binary {
+                    lhs: Ident(
+                        Token {
+                            kind: Ident,
+                            token: "b",
+                            offset: 0,
+                        },
+                    ),
+                    op: Token {
+                        kind: Plus,
+                        token: "+",
+                        offset: 2,
+                    },
+                    rhs: Binary {
+                        lhs: Number(
+                            2,
+                        ),
+                        op: Token {
+                            kind: Star,
+                            token: "*",
+                            offset: 6,
+                        },
+                        rhs: Number(
+                            3,
+                        ),
+                    },
+                },
+                op: Token {
+                    kind: Plus,
+                    token: "+",
+                    offset: 10,
+                },
+                rhs: Number(
+                    1,
+                ),
+            },
+            op: Token {
+                kind: SmallerSmaller,
+                token: "<<",
+                offset: 14,
+            },
+            rhs: Number(
+                1,
+            ),
+        },
+        op: Token {
+            kind: Or,
+            token: "|",
+            offset: 19,
+        },
+        rhs: Number(
+            10000,
+        ),
+    },
+)

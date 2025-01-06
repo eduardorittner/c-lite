@@ -1,0 +1,32 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Err(
+    MietteDiagnostic {
+        message: "Expected semicolon after declaration",
+        code: None,
+        severity: None,
+        help: Some(
+            "Unexpected token: Token { kind: Eof, token: \"\", offset: 9 }",
+        ),
+        url: None,
+        labels: Some(
+            [
+                LabeledSpan {
+                    label: Some(
+                        "here",
+                    ),
+                    span: SourceSpan {
+                        offset: SourceOffset(
+                            9,
+                        ),
+                        length: 0,
+                    },
+                    primary: false,
+                },
+            ],
+        ),
+    },
+)

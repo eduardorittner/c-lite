@@ -1,0 +1,55 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    CompoundAssign {
+        lhs: Ident(
+            Token {
+                kind: Ident,
+                token: "a",
+                offset: 0,
+            },
+        ),
+        op: Token {
+            kind: PlusEq,
+            token: "+=",
+            offset: 2,
+        },
+        rhs: Binary {
+            lhs: Binary {
+                lhs: Number(
+                    2,
+                ),
+                op: Token {
+                    kind: Star,
+                    token: "*",
+                    offset: 7,
+                },
+                rhs: Number(
+                    3,
+                ),
+            },
+            op: Token {
+                kind: Plus,
+                token: "+",
+                offset: 11,
+            },
+            rhs: Unary {
+                op: Token {
+                    kind: Minus,
+                    token: "-",
+                    offset: 13,
+                },
+                rhs: Ident(
+                    Token {
+                        kind: Ident,
+                        token: "var",
+                        offset: 14,
+                    },
+                ),
+            },
+        },
+    },
+)

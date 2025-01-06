@@ -457,10 +457,7 @@ impl<'src> Parser<'src> {
                 statements: self.block()?,
             }),
 
-            _ => {
-                println!("{token:?}");
-                unreachable!()
-            }
+            _ => unreachable!(),
         }
     }
 
@@ -553,6 +550,7 @@ impl<'src> Parser<'src> {
             None
         };
         self.expect(TokenKind::Eq, "Expected '=' after var name")?;
+        println!("{:?}", self.peek().unwrap());
         let init = self.initializer()?;
         Ok(Decl {
             token,
@@ -646,24 +644,24 @@ impl<'src> Parser<'src> {
 
     pub fn initializer(&mut self) -> Result<Init> {
         // TODO parse struct initializers and so on
-        let expr = self.conditional_expr()?;
+        let expr = self.expr()?;
+        println!("after expr {:?}", self.peek().unwrap());
         Ok(Init::Scalar(expr))
     }
 
     // <expr> ::= <assign-expr> | <expr> , <assign-expr>
     pub fn expr(&mut self) -> Result<ExprKind> {
-        let expr = self.assign_expr()?;
+        let mut expr = self.assign_expr()?;
 
-        if let Some(token) = match_next!(self, TokenKind::Comma) {
+        while let Some(token) = match_next!(self, TokenKind::Comma) {
             let rhs = self.assign_expr()?;
-            Ok(ExprKind::Comma {
+            expr = ExprKind::Comma {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            }
         }
+        Ok(expr)
     }
 
     // <assign-expr> ::= <conditional-expr>    | <unary-expr> assign-operator <assign-expr>
@@ -698,120 +696,113 @@ impl<'src> Parser<'src> {
 
     // <conditional-expr> ::= <logical-or-expr> | <logical-or-expr> '?' <expr> ':' <conditional-expr>
     pub fn conditional_expr(&mut self) -> Result<ExprKind> {
-        let expr = self.or()?;
+        let mut expr = self.or()?;
 
-        if let Some(_) = match_next!(self, TokenKind::Question) {
+        while let Some(_) = match_next!(self, TokenKind::Question) {
             let yes = self.expr()?;
             self.expect(
                 TokenKind::Colon,
                 "Expected colon after second ternary clause",
             )?;
             let no = self.conditional_expr()?;
-            Ok(ExprKind::Ternary {
+            expr = ExprKind::Ternary {
                 question: Box::new(expr),
                 yes: Box::new(yes),
                 no: Box::new(no),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <logical-or-expr> ::= <logical-and-expr> | <logical-or-expr> '||' <logical-and-expr>
     pub fn or(&mut self) -> Result<ExprKind> {
-        let expr = self.and()?;
+        let mut expr = self.and()?;
 
-        if let Some(token) = match_next!(self, TokenKind::OrOr) {
+        while let Some(token) = match_next!(self, TokenKind::OrOr) {
             let rhs = self.or()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <logical-and-expr> ::= <bit-or-expr>     | <logical-and-expr> '&&' <bit-and-expr>
     pub fn and(&mut self) -> Result<ExprKind> {
-        let expr = self.bit_or()?;
+        let mut expr = self.bit_or()?;
 
-        if let Some(token) = match_next!(self, TokenKind::AndAnd) {
+        while let Some(token) = match_next!(self, TokenKind::AndAnd) {
             let rhs = self.and()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            }
         }
+        Ok(expr)
     }
 
     // <bit-or-expr> ::= <bit-xor-expr>         | <bit-or-expr> '|' <bit-xor-expr>
     pub fn bit_or(&mut self) -> Result<ExprKind> {
-        let expr = self.bit_xor()?;
+        let mut expr = self.bit_xor()?;
 
-        if let Some(token) = match_next!(self, TokenKind::Or) {
+        while let Some(token) = match_next!(self, TokenKind::Or) {
             let rhs = self.bit_or()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <bit-xor-expr> ::= <bit-and-expr>        | <bit-xor-expr> '^' <bit-and-expr>
     pub fn bit_xor(&mut self) -> Result<ExprKind> {
-        let expr = self.bit_and()?;
+        let mut expr = self.bit_and()?;
 
-        if let Some(token) = match_next!(self, TokenKind::Xor) {
+        while let Some(token) = match_next!(self, TokenKind::Xor) {
             let rhs = self.bit_xor()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <bit-and-expr> ::= <equality-expr>       | <bit-and-expr> '&' <equality-expr>
     pub fn bit_and(&mut self) -> Result<ExprKind> {
-        let expr = self.equality()?;
+        let mut expr = self.equality()?;
 
-        if let Some(token) = match_next!(self, TokenKind::And) {
+        while let Some(token) = match_next!(self, TokenKind::And) {
             let rhs = self.bit_and()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <equality-expr> ::= <relational-expr>    | <equality-expr> '==' <relational-expr>
     //                                          | <equality-expr> '!=' <relational-expr>
     pub fn equality(&mut self) -> Result<ExprKind> {
-        let expr = self.comparison()?;
+        let mut expr = self.comparison()?;
 
-        if let Some(token) = match_next!(self, TokenKind::EqEq | TokenKind::NotEq) {
+        while let Some(token) = match_next!(self, TokenKind::EqEq | TokenKind::NotEq) {
             let rhs = self.equality()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <comparison-expr> ::= <shift-expr>       | <comparison-expr> '>' <shift-expr>
@@ -819,78 +810,74 @@ impl<'src> Parser<'src> {
     //                                          | <comparison-expr> '>=' <shift-expr>
     //                                          | <comparison-expr> '<=' <shift-expr>
     pub fn comparison(&mut self) -> Result<ExprKind> {
-        let expr = self.shift()?;
+        let mut expr = self.shift()?;
 
-        if let Some(token) = match_next!(
+        while let Some(token) = match_next!(
             self,
             TokenKind::Greater | TokenKind::Smaller | TokenKind::GreaterEq | TokenKind::SmallerEq
         ) {
             let rhs = self.comparison()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <shift-expr> ::= <add-expr>              | <shift-expr> '>>' <addsub-expr>
     //                                          | <shift-expr> '<<' <addsub-expr>
     pub fn shift(&mut self) -> Result<ExprKind> {
-        let expr = self.addsub()?;
+        let mut expr = self.addsub()?;
 
-        if let Some(token) =
+        while let Some(token) =
             match_next!(self, TokenKind::GreaterGreater | TokenKind::SmallerSmaller)
         {
             let rhs = self.shift()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <addsub-expr> ::= <muldiv-expr>          | <addsub-expr> '+' <muldiv-expr>
     //                                          | <addsub-expr> '-' <muldiv-expr>
     pub fn addsub(&mut self) -> Result<ExprKind> {
-        let expr = self.muldiv()?;
+        let mut expr = self.muldiv()?;
 
-        if let Some(token) = match_next!(self, TokenKind::Plus | TokenKind::Minus) {
+        while let Some(token) = match_next!(self, TokenKind::Plus | TokenKind::Minus) {
             let rhs = self.muldiv()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <muldiv-expr> ::= <unary-expr>            | <muldiv-expr> '*' <unary-expr>
     //                                          | <muldiv-expr> '/' <unary-expr>
     //                                          | <muldiv-expr> '%' <unary-expr>
     pub fn muldiv(&mut self) -> Result<ExprKind> {
-        let expr = self.unary_expr()?;
+        let mut expr = self.unary_expr()?;
 
-        if let Some(token) = match_next!(
+        while let Some(token) = match_next!(
             self,
             TokenKind::Star | TokenKind::Slash | TokenKind::Percent
         ) {
             let rhs = self.muldiv()?;
-            Ok(ExprKind::Binary {
+            expr = ExprKind::Binary {
                 lhs: Box::new(expr),
                 op: token,
                 rhs: Box::new(rhs),
-            })
-        } else {
-            Ok(expr)
+            };
         }
+        Ok(expr)
     }
 
     // <unary-expr> ::= <postfix-expr>
@@ -1176,6 +1163,30 @@ pub mod tests {
     }
 
     #[test]
+    fn long_expr() {
+        let source = "b + 2 * 3 + 1 << 1 | 10000";
+        let mut parser = Parser::new(&source);
+        let result = parser.expr();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn compound_expr() {
+        let source = "a += 2 * 3 + -var";
+        let mut parser = Parser::new(&source);
+        let result = parser.expr();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    fn comma_expr() {
+        let source = "a + 2, a++ + 3, -1 * a++ - ++b";
+        let mut parser = Parser::new(&source);
+        let result = parser.expr();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
     fn unary_and_deref() {
         let source = "a = *p++";
         let expected = "Assign:\n|'a'\n|Unary: '*'\n||Postfix: '++'\n|||'p'";
@@ -1306,6 +1317,22 @@ pub mod tests {
     #[test]
     fn block_stmt() {
         let source = "{let a = 1; let b = 2 + 3 * 5;}";
+        let mut parser = Parser::new(&source);
+        let result = parser.parse();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn let_decl() {
+        let source = "let a: int = b + 2 * 3 + 1;";
+        let mut parser = Parser::new(&source);
+        let result = parser.parse();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn let_decl_without_semicolon() {
+        let source = "let a = 1";
         let mut parser = Parser::new(&source);
         let result = parser.parse();
         assert_debug_snapshot!(result)
