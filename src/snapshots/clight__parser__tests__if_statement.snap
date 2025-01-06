@@ -1,0 +1,94 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    [
+        If {
+            token: Token {
+                kind: If,
+                token: "if",
+                offset: 0,
+            },
+            cond: Binary {
+                lhs: Ident(
+                    Token {
+                        kind: Ident,
+                        token: "a",
+                        offset: 4,
+                    },
+                ),
+                op: Token {
+                    kind: EqEq,
+                    token: "==",
+                    offset: 6,
+                },
+                rhs: Number(
+                    2,
+                ),
+            },
+            iftrue: Block {
+                statements: [
+                    Decl {
+                        declaration: Decl {
+                            token: Token {
+                                kind: Let,
+                                token: "let",
+                                offset: 13,
+                            },
+                            kind: VarDecl {
+                                ident: Token {
+                                    kind: Ident,
+                                    token: "b",
+                                    offset: 17,
+                                },
+                                spec: None,
+                                init: Scalar(
+                                    Number(
+                                        2,
+                                    ),
+                                ),
+                            },
+                        },
+                    },
+                ],
+            },
+            else_token: Some(
+                Token {
+                    kind: Else,
+                    token: "else",
+                    offset: 25,
+                },
+            ),
+            iffalse: Some(
+                Block {
+                    statements: [
+                        Decl {
+                            declaration: Decl {
+                                token: Token {
+                                    kind: Let,
+                                    token: "let",
+                                    offset: 32,
+                                },
+                                kind: VarDecl {
+                                    ident: Token {
+                                        kind: Ident,
+                                        token: "b",
+                                        offset: 36,
+                                    },
+                                    spec: None,
+                                    init: Scalar(
+                                        Number(
+                                            3,
+                                        ),
+                                    ),
+                                },
+                            },
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+)

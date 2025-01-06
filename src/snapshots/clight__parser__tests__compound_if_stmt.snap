@@ -1,0 +1,115 @@
+---
+source: src/parser.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    [
+        If {
+            token: Token {
+                kind: If,
+                token: "if",
+                offset: 0,
+            },
+            cond: Bool(
+                false,
+            ),
+            iftrue: Block {
+                statements: [
+                    If {
+                        token: Token {
+                            kind: If,
+                            token: "if",
+                            offset: 12,
+                        },
+                        cond: Bool(
+                            true,
+                        ),
+                        iftrue: Block {
+                            statements: [
+                                Decl {
+                                    declaration: Decl {
+                                        token: Token {
+                                            kind: Let,
+                                            token: "let",
+                                            offset: 23,
+                                        },
+                                        kind: VarDecl {
+                                            ident: Token {
+                                                kind: Ident,
+                                                token: "a",
+                                                offset: 27,
+                                            },
+                                            spec: None,
+                                            init: Scalar(
+                                                Number(
+                                                    1,
+                                                ),
+                                            ),
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                        else_token: None,
+                        iffalse: None,
+                    },
+                    Expression {
+                        expression: Assign {
+                            lhs: Ident(
+                                Token {
+                                    kind: Ident,
+                                    token: "b",
+                                    offset: 35,
+                                },
+                            ),
+                            op: Token {
+                                kind: Eq,
+                                token: "=",
+                                offset: 37,
+                            },
+                            rhs: Number(
+                                1,
+                            ),
+                        },
+                    },
+                ],
+            },
+            else_token: Some(
+                Token {
+                    kind: Else,
+                    token: "else",
+                    offset: 43,
+                },
+            ),
+            iffalse: Some(
+                Block {
+                    statements: [
+                        Decl {
+                            declaration: Decl {
+                                token: Token {
+                                    kind: Let,
+                                    token: "let",
+                                    offset: 50,
+                                },
+                                kind: VarDecl {
+                                    ident: Token {
+                                        kind: Ident,
+                                        token: "b",
+                                        offset: 54,
+                                    },
+                                    spec: None,
+                                    init: Scalar(
+                                        Number(
+                                            3,
+                                        ),
+                                    ),
+                                },
+                            },
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+)

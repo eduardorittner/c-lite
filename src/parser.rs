@@ -2,6 +2,8 @@ use crate::lexer::{Lexer, LiteralKind, Token, TokenKind};
 use miette::Result;
 
 mod ast {
+    use std::fmt::Write;
+
     use crate::lexer::Token;
 
     // Expressions are anything in the language that has an associated value
@@ -85,10 +87,45 @@ mod ast {
         Aggregate(Vec<Box<Init>>),
     }
 
+    impl PrettyPrint for Init {
+        fn pretty_fmt(&self, depth: usize) -> String {
+            match self {
+                Init::Scalar(expr) => {
+                    format!("init:\n{}", expr.indent_fmt(depth + 1))
+                }
+                Init::Aggregate(inits) => {
+                    let mut result = String::from("init:\n");
+                    for init in inits {
+                        let _ = write!(result, "{}, ", init.indent_fmt(depth + 1));
+                    }
+                    result
+                }
+            }
+        }
+    }
+
+    impl std::fmt::Display for Init {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.indent_fmt(0))
+        }
+    }
+
     #[derive(Debug, Clone)]
     pub struct TypeSpec {
         pub token: Token,
         pub kind: TypeSpecKind,
+    }
+
+    impl PrettyPrint for TypeSpec {
+        fn pretty_fmt(&self, depth: usize) -> String {
+            format!("type: {}", self.token.token)
+        }
+    }
+
+    impl std::fmt::Display for TypeSpec {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.indent_fmt(0))
+        }
     }
 
     #[derive(Debug, Clone)]
@@ -98,20 +135,17 @@ mod ast {
         Pointer,
     }
 
+    // TODO implement PrettyPrint for Field
     #[derive(Debug, Clone)]
     pub struct Field {
         pub name: Token,
         pub r#type: TypeSpec,
     }
 
-    pub struct Stmt {
-        token: Token,
-        kind: StmtKind,
-    }
-
+    #[derive(Debug, Clone)]
     pub enum StmtKind {
-        Compound {
-            statements: Vec<Stmt>,
+        Block {
+            statements: Vec<StmtKind>,
         },
         Decl {
             declaration: Decl,
@@ -120,13 +154,16 @@ mod ast {
             expression: ExprKind,
         },
         If {
+            token: Token,
             cond: ExprKind,
-            iftrue: Box<Stmt>,
-            iffalse: Option<Box<Stmt>>,
+            iftrue: Box<StmtKind>,
+            else_token: Option<Token>,
+            iffalse: Option<Box<StmtKind>>,
         },
         While {
+            token: Token,
             cond: ExprKind,
-            block: Box<Stmt>,
+            block: Box<StmtKind>,
         },
     }
 
@@ -139,30 +176,106 @@ mod ast {
         }
     }
 
+    impl PrettyPrint for StmtKind {
+        fn pretty_fmt(&self, depth: usize) -> String {
+            match self {
+                StmtKind::Block { ref statements } => {
+                    let mut result = String::from("Statements:\n");
+                    for stmt in statements {
+                        let _ = write!(result, "{}\n", stmt.indent_fmt(depth + 1));
+                    }
+                    result
+                }
+                StmtKind::Decl { ref declaration } => {
+                    format!("{}", declaration.pretty_fmt(depth))
+                }
+                StmtKind::Expression { ref expression } => {
+                    format!("{}", expression.pretty_fmt(depth))
+                }
+                StmtKind::If {
+                    token: _,
+                    else_token: _,
+                    ref cond,
+                    ref iftrue,
+                    ref iffalse,
+                } => {
+                    if let Some(iffalse) = iffalse {
+                        format!(
+                            "If\n{}\n{}then:\n{}{}else:\n{}",
+                            cond.indent_fmt(depth + 1),
+                            "|".repeat(depth + 2),
+                            iftrue.indent_fmt(depth + 3),
+                            "|".repeat(depth + 2),
+                            iffalse.indent_fmt(depth + 3)
+                        )
+                    } else {
+                        format!(
+                            "If\n{}\n{}then:\n{}",
+                            cond.indent_fmt(depth + 1),
+                            "|".repeat(depth + 2),
+                            iftrue.indent_fmt(depth + 3)
+                        )
+                    }
+                }
+                StmtKind::While {
+                    token: _,
+                    ref cond,
+                    ref block,
+                } => format!("While {cond}:\n{block}"),
+            }
+        }
+    }
+
+    impl std::fmt::Display for StmtKind {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.indent_fmt(0))
+        }
+    }
+
     impl PrettyPrint for Decl {
-        fn pretty_fmt(&self, _: usize) -> String {
+        fn pretty_fmt(&self, depth: usize) -> String {
             match self.kind {
                 DeclKind::VarDecl {
                     ref ident,
                     ref spec,
                     ref init,
                 } => {
-                    format!(
-                        "Declaration: var: {} type: {:?} value: {:?}",
-                        ident.token, spec, init
-                    )
+                    if let Some(spec) = spec {
+                        format!(
+                            "Var Declaration: '{}'\n{}\n{}",
+                            ident.token,
+                            spec.indent_fmt(depth + 1),
+                            init.indent_fmt(depth + 1)
+                        )
+                    } else {
+                        format!(
+                            "Var Declaration: '{}'\n{}",
+                            ident.token,
+                            init.indent_fmt(depth + 1)
+                        )
+                    }
                 }
                 DeclKind::TypeDecl {
                     oldtype: ref spec,
                     ref newtype,
                 } => {
-                    format!("Type Decl: type: {:?} newtype: {:?}", spec, newtype)
+                    format!(
+                        "Type Decl:\n{}\n{}newtype: {}",
+                        spec.indent_fmt(depth + 1),
+                        "|".repeat(depth + 1),
+                        newtype.token
+                    )
                 }
                 DeclKind::StructDecl {
                     ref name,
                     ref fields,
                 } => {
-                    format!("Struct Decl: name: {}, fields: {:?}", name.token, fields)
+                    format!(
+                        "Struct Decl:\n{}{}, fields: {:?}",
+                        "|".repeat(depth + 1),
+                        name.token,
+                        fields
+                    )
                 }
             }
         }
@@ -311,12 +424,99 @@ impl<'src> Parser<'src> {
         }
     }
 
-    pub fn parse(&mut self) -> Result<ExprKind> {
-        self.expr()
+    pub fn parse(&mut self) -> Result<Vec<StmtKind>> {
+        let mut stmts = Vec::new();
+        while let Some(token) = self.peek() {
+            if token.kind == TokenKind::Eof {
+                return Ok(stmts);
+            }
+
+            stmts.push(self.stmt()?);
+        }
+        Ok(stmts)
     }
 
-    pub fn stmt(&mut self) -> Result<Stmt> {
+    // <stmt> ::= <if-stmt>
+    pub fn stmt(&mut self) -> Result<StmtKind> {
+        let token = self.peek().unwrap();
+
+        match token.kind {
+            TokenKind::If => self.if_stmt(),
+            TokenKind::While => self.while_stmt(),
+            TokenKind::Ident | TokenKind::Literal(_) => {
+                let expr = self.expr()?;
+                self.expect(TokenKind::Semicolon, "Expected semicolon after expression")?;
+                Ok(StmtKind::Expression { expression: expr })
+            }
+            TokenKind::Let | TokenKind::Type | TokenKind::Struct => {
+                let decl = self.decl()?;
+                self.expect(TokenKind::Semicolon, "Expected semicolon after declaration")?;
+                Ok(StmtKind::Decl { declaration: decl })
+            }
+            TokenKind::OpenBrace => Ok(StmtKind::Block {
+                statements: self.block()?,
+            }),
+
+            _ => {
+                println!("{token:?}");
+                unreachable!()
+            }
+        }
+    }
+
+    pub fn while_stmt(&mut self) -> Result<StmtKind> {
         todo!()
+    }
+
+    // <if-stmt> ::= if ( <conditional-expr> ) { <block> }
+    //             | if ( <conditional-expr> ) { <block> } else { <block> }
+    pub fn if_stmt(&mut self) -> Result<StmtKind> {
+        let token = self.expect(TokenKind::If, "unreachable")?;
+        self.expect(TokenKind::OpenParen, "If condition must be inside parens")?;
+        let cond = self.conditional_expr()?;
+        self.expect(
+            TokenKind::CloseParen,
+            "Expected closing parens for if condition",
+        )?;
+        let block = self.block()?;
+
+        let (else_token, else_stmt) = if let Some(else_token) = match_next!(self, TokenKind::Else) {
+            (
+                Some(else_token),
+                Some(StmtKind::Block {
+                    statements: self.block()?,
+                }),
+            )
+        } else {
+            (None, None)
+        };
+
+        let ifstmt = StmtKind::Block { statements: block };
+
+        Ok(StmtKind::If {
+            token,
+            cond,
+            iftrue: Box::new(ifstmt),
+            else_token,
+            iffalse: else_stmt.map(|b| Box::new(b)),
+        })
+    }
+
+    // <block> ::= <stmt>; | <block>; <stmt>;
+    pub fn block(&mut self) -> Result<Vec<StmtKind>> {
+        self.expect(TokenKind::OpenBrace, "Expected open brace for block")?;
+        let mut stmts = Vec::new();
+        while let Some(token) = self.peek() {
+            if token.kind == TokenKind::CloseBrace {
+                break;
+            } else if token.kind == TokenKind::Eof {
+                return Ok(stmts);
+            }
+
+            stmts.push(self.stmt()?);
+        }
+        self.expect(TokenKind::CloseBrace, "Expected closing brace")?;
+        Ok(stmts)
     }
 
     // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
@@ -817,8 +1017,14 @@ impl<'src> Parser<'src> {
             TokenKind::Literal(LiteralKind::Hex) => self.hex_number(),
             TokenKind::Literal(LiteralKind::Binary) => self.binary_number(),
             TokenKind::Literal(LiteralKind::String) => self.string(),
-            TokenKind::True => Ok(ExprKind::Bool(true)),
-            TokenKind::False => Ok(ExprKind::Bool(false)),
+            TokenKind::True => {
+                self.advance();
+                Ok(ExprKind::Bool(true))
+            }
+            TokenKind::False => {
+                self.advance();
+                Ok(ExprKind::Bool(false))
+            }
             _ => unreachable!(),
         }
     }
@@ -1078,6 +1284,30 @@ pub mod tests {
         let source = "struct void {a: char}";
         let mut parser = Parser::new(&source);
         let result = parser.decl();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn if_statement() {
+        let source = "if (a == 2) {let b = 2;} else { let b = 3;}";
+        let mut parser = Parser::new(&source);
+        let result = parser.parse();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn compound_if_stmt() {
+        let source = "if (false) {if (true) {let a = 1;} b = 1;} else { let b = 3;}";
+        let mut parser = Parser::new(&source);
+        let result = parser.parse();
+        assert_debug_snapshot!(result)
+    }
+
+    #[test]
+    fn block_stmt() {
+        let source = "{let a = 1; let b = 2 + 3 * 5;}";
+        let mut parser = Parser::new(&source);
+        let result = parser.parse();
         assert_debug_snapshot!(result)
     }
 }

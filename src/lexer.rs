@@ -5,6 +5,16 @@ pub struct Token {
     pub offset: usize,
 }
 
+impl Token {
+    pub fn default() -> Self {
+        Self {
+            kind: TokenKind::Whitespace,
+            token: "".to_string(),
+            offset: 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     Ident,
@@ -65,6 +75,7 @@ pub enum TokenKind {
     // Control-flow
     For,
     If,
+    Else,
     Return,
     While,
     Let,
@@ -142,6 +153,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::False => write!(f, "'false'"),
             TokenKind::For => write!(f, "'for'"),
             TokenKind::If => write!(f, "'if'"),
+            TokenKind::Else => write!(f, "'else'"),
             TokenKind::Return => write!(f, "'return'"),
             TokenKind::While => write!(f, "'while'"),
             TokenKind::Enum => write!(f, "'enum'"),
@@ -291,6 +303,7 @@ impl<'src> Iterator for Lexer<'src> {
                         "let" => Let,
                         "for" => For,
                         "if" => If,
+                        "else" => Else,
                         "return" => Return,
                         "while" => While,
                         "enum" => Enum,
