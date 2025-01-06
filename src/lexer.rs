@@ -5,16 +5,6 @@ pub struct Token {
     pub offset: usize,
 }
 
-impl Token {
-    pub fn default() -> Self {
-        Self {
-            kind: TokenKind::Whitespace,
-            token: "".to_string(),
-            offset: 0,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     Ident,
@@ -260,6 +250,7 @@ impl<'src> Iterator for Lexer<'src> {
                 '}' => return simple_token(CloseBrace),
                 '%' => return simple_token(Percent),
                 '?' => return simple_token(Question),
+                '~' => return simple_token(Tilde),
                 '+' => State::ThreePossibilitites('+'),
                 '-' => State::ThreePossibilitites('-'),
                 '*' => State::IfEqElse('=', StarEq, Star),
@@ -525,7 +516,7 @@ mod tests {
 
     #[test]
     fn single_char_tokens() {
-        let source = "+ - * / = . , : ; ! & |";
+        let source = "+ - * / = . , : ; ! ~ & | % [ ]";
         let lexer = Lexer::new(&source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
@@ -533,7 +524,7 @@ mod tests {
 
     #[test]
     fn double_char_tokens() {
-        let source = "+= -= *= /= == != <= >= << >>";
+        let source = "+= ++ -= -- *= /= == != <= >= << >>";
         let lexer = Lexer::new(&source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
@@ -576,6 +567,22 @@ mod tests {
         let source: String = ['"', '\\', '\"', '"'].iter().collect();
         let lexer = Lexer::new(&source);
         let result: Vec<Token> = lexer.into_iter().collect();
+        assert_debug_snapshot!(result);
+    }
+
+    #[test]
+    #[should_panic]
+    fn invalid_char() {
+        let source = "🚫";
+        let lexer = Lexer::new(&source);
+        let _: Vec<Token> = lexer.into_iter().collect();
+    }
+
+    #[test]
+    fn test_display() {
+        let source = "ident 0x1f 0b10 23 \"string\" + += - -= / /= * *= % = ! & ^ ~ | ? ^= == != && ^^ <= || < >= > ++ -- >> << ( ) [ ] { } , . : ; -> true false for if else return while let enum struct union tagunion type void char int uint float bool)";
+        let lexer = Lexer::new(&source);
+        let result: Vec<String> = lexer.into_iter().map(|t| t.kind.to_string()).collect();
         assert_debug_snapshot!(result);
     }
 }

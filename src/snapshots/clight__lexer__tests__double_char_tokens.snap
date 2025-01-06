@@ -10,53 +10,63 @@ snapshot_kind: text
         offset: 0,
     },
     Token {
+        kind: PlusPlus,
+        token: "++",
+        offset: 3,
+    },
+    Token {
         kind: MinusEq,
         token: "-=",
-        offset: 3,
+        offset: 6,
+    },
+    Token {
+        kind: MinusMinus,
+        token: "--",
+        offset: 9,
     },
     Token {
         kind: StarEq,
         token: "*=",
-        offset: 6,
+        offset: 12,
     },
     Token {
         kind: SlashEq,
         token: "/=",
-        offset: 9,
+        offset: 15,
     },
     Token {
         kind: EqEq,
         token: "==",
-        offset: 12,
+        offset: 18,
     },
     Token {
         kind: NotEq,
         token: "!=",
-        offset: 15,
+        offset: 21,
     },
     Token {
         kind: SmallerEq,
         token: "<=",
-        offset: 18,
+        offset: 24,
     },
     Token {
         kind: GreaterEq,
         token: ">=",
-        offset: 21,
+        offset: 27,
     },
     Token {
         kind: SmallerSmaller,
         token: "<<",
-        offset: 24,
+        offset: 30,
     },
     Token {
         kind: GreaterGreater,
         token: ">>",
-        offset: 27,
+        offset: 33,
     },
     Token {
         kind: Eof,
         token: "",
-        offset: 29,
+        offset: 35,
     },
 ]

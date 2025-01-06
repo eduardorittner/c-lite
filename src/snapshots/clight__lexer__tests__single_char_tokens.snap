@@ -55,18 +55,38 @@ snapshot_kind: text
         offset: 18,
     },
     Token {
+        kind: Tilde,
+        token: "~",
+        offset: 20,
+    },
+    Token {
         kind: And,
         token: "&",
-        offset: 20,
+        offset: 22,
     },
     Token {
         kind: Or,
         token: "|",
-        offset: 22,
+        offset: 24,
+    },
+    Token {
+        kind: Percent,
+        token: "%",
+        offset: 26,
+    },
+    Token {
+        kind: OpenBracket,
+        token: "[",
+        offset: 28,
+    },
+    Token {
+        kind: CloseBracket,
+        token: "]",
+        offset: 30,
     },
     Token {
         kind: Eof,
         token: "",
-        offset: 23,
+        offset: 31,
     },
 ]
