@@ -1,7 +1,100 @@
-
-use std::fmt::Write;
-
 use crate::lexer::Token;
+use std::fmt::{Display, Write};
+
+#[derive(Debug, Clone)]
+pub enum ExternalDecl {
+    Decl(Decl),
+    FnDecl(FnDecl, Vec<StmtKind>),
+}
+
+// <decl> ::= <var-decl> | <type-decl> | <struct-decl>
+#[derive(Debug, Clone)]
+pub struct Decl {
+    pub token: Token,
+    pub kind: DeclKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum DeclKind {
+    VarDecl {
+        ident: Token,
+        spec: Option<TypeSpec>,
+        init: Init,
+    },
+    TypeDecl {
+        oldtype: TypeSpec,
+        newtype: Token,
+    },
+    StructDecl {
+        name: Token,
+        fields: Vec<Field>,
+    },
+}
+
+// TODO implement PrettyPrint for Field
+#[derive(Debug, Clone)]
+pub struct Field {
+    pub name: Token,
+    pub r#type: TypeSpec,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypeSpec {
+    pub token: Token,
+    pub kind: TypeSpecKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum TypeSpecKind {
+    Type,
+    UserType,
+    Pointer,
+}
+
+#[derive(Debug, Clone)]
+pub enum Init {
+    Scalar(ExprKind),
+    Aggregate(Vec<Box<Init>>),
+}
+
+#[derive(Debug, Clone)]
+pub struct FnDecl {
+    pub token: Token,
+    pub name: Token,
+    pub params: Vec<Param>,
+    pub ret: Option<TypeSpec>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Param {
+    pub spec: TypeSpec,
+    pub name: Token,
+}
+
+#[derive(Debug, Clone)]
+pub enum StmtKind {
+    Block {
+        statements: Vec<StmtKind>,
+    },
+    Decl {
+        declaration: Decl,
+    },
+    Expression {
+        expression: ExprKind,
+    },
+    If {
+        token: Token,
+        cond: ExprKind,
+        iftrue: Box<StmtKind>,
+        else_token: Option<Token>,
+        iffalse: Option<Box<StmtKind>>,
+    },
+    While {
+        token: Token,
+        cond: ExprKind,
+        block: Box<StmtKind>,
+    },
+}
 
 // Expressions are anything in the language that has an associated value
 // or that performs some computation over other expressions
@@ -54,136 +147,9 @@ pub enum ExprKind {
     },
 }
 
-// <decl> ::= <var-decl> | <type-decl> | <struct-decl>
-#[derive(Debug, Clone)]
-pub struct Decl {
-    pub token: Token,
-    pub kind: DeclKind,
-}
-
-#[derive(Debug, Clone)]
-pub enum DeclKind {
-    VarDecl {
-        ident: Token,
-        spec: Option<TypeSpec>,
-        init: Init,
-    },
-    TypeDecl {
-        oldtype: TypeSpec,
-        newtype: Token,
-    },
-    StructDecl {
-        name: Token,
-        fields: Vec<Field>,
-    },
-}
-
-#[derive(Debug, Clone)]
-pub enum Init {
-    Scalar(ExprKind),
-    Aggregate(Vec<Box<Init>>),
-}
-
-impl PrettyPrint for Init {
-    fn pretty_fmt(&self, depth: usize) -> String {
-        match self {
-            Init::Scalar(expr) => {
-                format!("init:\n{}", expr.indent_fmt(depth + 1))
-            }
-            Init::Aggregate(inits) => {
-                let mut result = String::from("init:\n");
-                for init in inits {
-                    let _ = write!(result, "{}, ", init.indent_fmt(depth + 1));
-                }
-                result
-            }
-        }
-    }
-}
-
-impl std::fmt::Display for Init {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.indent_fmt(0))
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TypeSpec {
-    pub token: Token,
-    pub kind: TypeSpecKind,
-}
-
-impl PrettyPrint for TypeSpec {
-    fn pretty_fmt(&self, depth: usize) -> String {
-        format!("type: {}", self.token.token)
-    }
-}
-
-impl std::fmt::Display for TypeSpec {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.indent_fmt(0))
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum TypeSpecKind {
-    Type,
-    UserType,
-    Pointer,
-}
-
-// TODO implement PrettyPrint for Field
-#[derive(Debug, Clone)]
-pub struct Field {
-    pub name: Token,
-    pub r#type: TypeSpec,
-}
-
-#[derive(Debug, Clone)]
-pub enum StmtKind {
-    Block {
-        statements: Vec<StmtKind>,
-    },
-    Decl {
-        declaration: Decl,
-    },
-    Expression {
-        expression: ExprKind,
-    },
-    If {
-        token: Token,
-        cond: ExprKind,
-        iftrue: Box<StmtKind>,
-        else_token: Option<Token>,
-        iffalse: Option<Box<StmtKind>>,
-    },
-    While {
-        token: Token,
-        cond: ExprKind,
-        block: Box<StmtKind>,
-    },
-}
-
-#[derive(Debug, Clone)]
-pub enum ExternalDecl {
-    Decl(Decl),
-    FnDecl(FnDecl, Vec<StmtKind>),
-}
-
-#[derive(Debug, Clone)]
-pub struct FnDecl {
-    pub token: Token,
-    pub name: Token,
-    pub params: Vec<Param>,
-    pub ret: Option<TypeSpec>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Param {
-    pub spec: TypeSpec,
-    pub name: Token,
-}
-
+/// Used for pretty-printing the ast in a more human-readable way
+/// We can't just implement Display since we require extra state,
+/// namely, how deep in the ast we are.
 pub trait PrettyPrint {
     fn pretty_fmt(&self, depth: usize) -> String;
 
@@ -193,59 +159,9 @@ pub trait PrettyPrint {
     }
 }
 
-impl PrettyPrint for StmtKind {
+impl PrettyPrint for ExternalDecl {
     fn pretty_fmt(&self, depth: usize) -> String {
-        match self {
-            StmtKind::Block { ref statements } => {
-                let mut result = String::from("Statements:\n");
-                for stmt in statements {
-                    let _ = write!(result, "{}\n", stmt.indent_fmt(depth + 1));
-                }
-                result
-            }
-            StmtKind::Decl { ref declaration } => {
-                format!("{}", declaration.pretty_fmt(depth))
-            }
-            StmtKind::Expression { ref expression } => {
-                format!("{}", expression.pretty_fmt(depth))
-            }
-            StmtKind::If {
-                token: _,
-                else_token: _,
-                ref cond,
-                ref iftrue,
-                ref iffalse,
-            } => {
-                if let Some(iffalse) = iffalse {
-                    format!(
-                        "If\n{}\n{}then:\n{}{}else:\n{}",
-                        cond.indent_fmt(depth + 1),
-                        "|".repeat(depth + 2),
-                        iftrue.indent_fmt(depth + 3),
-                        "|".repeat(depth + 2),
-                        iffalse.indent_fmt(depth + 3)
-                    )
-                } else {
-                    format!(
-                        "If\n{}\n{}then:\n{}",
-                        cond.indent_fmt(depth + 1),
-                        "|".repeat(depth + 2),
-                        iftrue.indent_fmt(depth + 3)
-                    )
-                }
-            }
-            StmtKind::While {
-                token: _,
-                ref cond,
-                ref block,
-            } => format!("While {cond}:\n{block}"),
-        }
-    }
-}
-
-impl std::fmt::Display for StmtKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.indent_fmt(0))
+        todo!()
     }
 }
 
@@ -298,9 +214,94 @@ impl PrettyPrint for Decl {
     }
 }
 
-impl std::fmt::Display for Decl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.indent_fmt(0))
+impl PrettyPrint for Field {
+    fn pretty_fmt(&self, depth: usize) -> String {
+        todo!()
+    }
+}
+
+impl PrettyPrint for TypeSpec {
+    fn pretty_fmt(&self, _: usize) -> String {
+        format!("type: {}", self.token.token)
+    }
+}
+
+impl PrettyPrint for Init {
+    fn pretty_fmt(&self, depth: usize) -> String {
+        match self {
+            Init::Scalar(expr) => {
+                format!("init:\n{}", expr.indent_fmt(depth + 1))
+            }
+            Init::Aggregate(inits) => {
+                let mut result = String::from("init:\n");
+                for init in inits {
+                    let _ = write!(result, "{}, ", init.indent_fmt(depth + 1));
+                }
+                result
+            }
+        }
+    }
+}
+
+impl PrettyPrint for FnDecl {
+    fn pretty_fmt(&self, depth: usize) -> String {
+        todo!()
+    }
+}
+
+impl PrettyPrint for Param {
+    fn pretty_fmt(&self, depth: usize) -> String {
+        todo!()
+    }
+}
+
+impl PrettyPrint for StmtKind {
+    fn pretty_fmt(&self, depth: usize) -> String {
+        match self {
+            StmtKind::Block { ref statements } => {
+                let mut result = String::from("Statements:\n");
+                for stmt in statements {
+                    let _ = write!(result, "{}\n", stmt.indent_fmt(depth + 1));
+                }
+                result
+            }
+            StmtKind::Decl { ref declaration } => {
+                format!("{}", declaration.pretty_fmt(depth))
+            }
+            StmtKind::Expression { ref expression } => {
+                format!("{}", expression.pretty_fmt(depth))
+            }
+            StmtKind::If {
+                token: _,
+                else_token: _,
+                ref cond,
+                ref iftrue,
+                ref iffalse,
+            } => {
+                if let Some(iffalse) = iffalse {
+                    format!(
+                        "If\n{}\n{}then:\n{}{}else:\n{}",
+                        cond.indent_fmt(depth + 1),
+                        "|".repeat(depth + 2),
+                        iftrue.indent_fmt(depth + 3),
+                        "|".repeat(depth + 2),
+                        iffalse.indent_fmt(depth + 3)
+                    )
+                } else {
+                    format!(
+                        "If\n{}\n{}then:\n{}",
+                        cond.indent_fmt(depth + 1),
+                        "|".repeat(depth + 2),
+                        iftrue.indent_fmt(depth + 3)
+                    )
+                }
+            }
+            StmtKind::While {
+                token: _,
+                ref cond,
+                ref block,
+            } => format!("While {cond}:\n{block}"),
+        }
     }
 }
 
@@ -356,8 +357,22 @@ impl PrettyPrint for ExprKind {
     }
 }
 
-impl std::fmt::Display for ExprKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.indent_fmt(0))
-    }
+macro_rules! display_impl {
+    ($type:ty) => {
+        impl Display for $type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.indent_fmt(0))
+            }
+        }
+    };
 }
+
+display_impl!(ExternalDecl);
+display_impl!(Decl);
+display_impl!(Field);
+display_impl!(TypeSpec);
+display_impl!(Init);
+display_impl!(FnDecl);
+display_impl!(Param);
+display_impl!(StmtKind);
+display_impl!(ExprKind);
