@@ -4,7 +4,7 @@ use std::fmt::{Display, Write};
 #[derive(Debug, Clone)]
 pub enum ExternalDecl {
     Decl(Decl),
-    FnDecl(FnDecl, Vec<StmtKind>),
+    FnDecl(FnDecl, StmtKind),
 }
 
 // <decl> ::= <var-decl> | <type-decl> | <struct-decl>
@@ -161,7 +161,18 @@ pub trait PrettyPrint {
 
 impl PrettyPrint for ExternalDecl {
     fn pretty_fmt(&self, depth: usize) -> String {
-        todo!()
+        match self {
+            ExternalDecl::Decl(decl) => {
+                format!("{}", decl.indent_fmt(depth))
+            }
+            ExternalDecl::FnDecl(fn_decl, block) => {
+                format!(
+                    "{}{}",
+                    fn_decl.indent_fmt(depth),
+                    block.indent_fmt(depth + 1)
+                )
+            }
+        }
     }
 }
 
@@ -215,8 +226,8 @@ impl PrettyPrint for Decl {
 }
 
 impl PrettyPrint for Field {
-    fn pretty_fmt(&self, depth: usize) -> String {
-        todo!()
+    fn pretty_fmt(&self, _: usize) -> String {
+        format!("Field {}: {}", self.name.token, self.r#type)
     }
 }
 
@@ -245,13 +256,36 @@ impl PrettyPrint for Init {
 
 impl PrettyPrint for FnDecl {
     fn pretty_fmt(&self, depth: usize) -> String {
-        todo!()
+        if let Some(ret) = &self.ret {
+            format!(
+                "Function {} -> {}:\n{}",
+                self.name.token,
+                ret,
+                self.params.pretty_fmt(depth)
+            )
+        } else {
+            format!(
+                "Function {}:\n{}",
+                self.name.token,
+                self.params.pretty_fmt(depth)
+            )
+        }
     }
 }
 
 impl PrettyPrint for Param {
+    fn pretty_fmt(&self, _: usize) -> String {
+        format!("Param {}: {}", self.name.token, self.spec)
+    }
+}
+
+impl PrettyPrint for Vec<Param> {
     fn pretty_fmt(&self, depth: usize) -> String {
-        todo!()
+        let mut result = String::new();
+        for param in self {
+            result += &(param.indent_fmt(depth + 1) + "\n");
+        }
+        result
     }
 }
 
@@ -351,7 +385,7 @@ impl PrettyPrint for ExprKind {
                 rhs.indent_fmt(depth + 1)
             ),
             ExprKind::PostUnary { op, rhs } => {
-                todo!("Post Unary: {}\n{}", op.kind, rhs.indent_fmt(depth + 1))
+                format!("Post Unary: {}\n{}", op.kind, rhs.indent_fmt(depth + 1))
             }
         }
     }

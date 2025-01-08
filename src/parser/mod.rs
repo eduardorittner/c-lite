@@ -120,7 +120,9 @@ impl<'src> Parser<'src> {
             ret,
         };
 
-        let block = self.block()?;
+        let block = StmtKind::Block {
+            statements: self.block()?,
+        };
 
         Ok(ExternalDecl::FnDecl(fn_decl, block))
     }
