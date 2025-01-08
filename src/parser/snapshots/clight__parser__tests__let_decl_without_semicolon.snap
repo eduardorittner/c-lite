@@ -1,14 +1,16 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
 Err(
     MietteDiagnostic {
-        message: "Expected a valid type, got: 'decimal'",
+        message: "Expected semicolon after declaration",
         code: None,
         severity: None,
-        help: None,
+        help: Some(
+            "Unexpected token: Token { kind: Eof, token: \"\", offset: 9 }",
+        ),
         url: None,
         labels: Some(
             [
@@ -18,9 +20,9 @@ Err(
                     ),
                     span: SourceSpan {
                         offset: SourceOffset(
-                            17,
+                            9,
                         ),
-                        length: 1,
+                        length: 0,
                     },
                     primary: false,
                 },

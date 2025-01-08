@@ -1,16 +1,14 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
 Err(
     MietteDiagnostic {
-        message: "Expected semicolon after declaration",
+        message: "Expected a struct field identifier, got: Token { kind: CloseBrace, token: \"}\", offset: 10 }",
         code: None,
         severity: None,
-        help: Some(
-            "Unexpected token: Token { kind: Eof, token: \"\", offset: 9 }",
-        ),
+        help: None,
         url: None,
         labels: Some(
             [
@@ -20,9 +18,9 @@ Err(
                     ),
                     span: SourceSpan {
                         offset: SourceOffset(
-                            9,
+                            10,
                         ),
-                        length: 0,
+                        length: 1,
                     },
                     primary: false,
                 },

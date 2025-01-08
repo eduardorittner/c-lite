@@ -1,0 +1,67 @@
+---
+source: src/parser/mod.rs
+expression: result
+snapshot_kind: text
+---
+Ok(
+    Decl {
+        token: Token {
+            kind: Let,
+            token: "let",
+            offset: 0,
+        },
+        kind: VarDecl {
+            ident: Token {
+                kind: Ident,
+                token: "a",
+                offset: 4,
+            },
+            spec: None,
+            init: Scalar(
+                Binary {
+                    lhs: Binary {
+                        lhs: Number(
+                            1,
+                        ),
+                        op: Token {
+                            kind: Plus,
+                            token: "+",
+                            offset: 10,
+                        },
+                        rhs: Binary {
+                            lhs: Number(
+                                2,
+                            ),
+                            op: Token {
+                                kind: Star,
+                                token: "*",
+                                offset: 14,
+                            },
+                            rhs: Number(
+                                3,
+                            ),
+                        },
+                    },
+                    op: Token {
+                        kind: SmallerSmaller,
+                        token: "<<",
+                        offset: 18,
+                    },
+                    rhs: Binary {
+                        lhs: Number(
+                            4,
+                        ),
+                        op: Token {
+                            kind: Plus,
+                            token: "+",
+                            offset: 23,
+                        },
+                        rhs: Number(
+                            2,
+                        ),
+                    },
+                },
+            ),
+        },
+    },
+)

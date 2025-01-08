@@ -1,14 +1,16 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
 Err(
     MietteDiagnostic {
-        message: "Expected a declaration, got: 'eof'",
+        message: "Expected struct name",
         code: None,
         severity: None,
-        help: None,
+        help: Some(
+            "Unexpected token: Token { kind: Void, token: \"void\", offset: 7 }",
+        ),
         url: None,
         labels: Some(
             [
@@ -18,9 +20,9 @@ Err(
                     ),
                     span: SourceSpan {
                         offset: SourceOffset(
-                            0,
+                            7,
                         ),
-                        length: 0,
+                        length: 4,
                     },
                     primary: false,
                 },

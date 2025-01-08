@@ -1,5 +1,5 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
@@ -16,20 +16,18 @@ Ok(
                 token: "a",
                 offset: 4,
             },
-            spec: Some(
-                TypeSpec {
-                    token: Token {
-                        kind: Int,
-                        token: "int",
-                        offset: 7,
-                    },
-                    kind: Type,
-                },
-            ),
+            spec: None,
             init: Scalar(
-                Number(
-                    202,
-                ),
+                Unary {
+                    op: Token {
+                        kind: Not,
+                        token: "!",
+                        offset: 8,
+                    },
+                    rhs: Number(
+                        1,
+                    ),
+                },
             ),
         },
     },

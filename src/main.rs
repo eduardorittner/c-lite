@@ -6,9 +6,9 @@ use miette::Result;
 pub use parser::Parser;
 
 fn main() -> Result<()> {
-    let source = "let a: int = b + 2 * 3 + 1;";
+    let source = "fn a(b: void, c: mytpe) -> shitty {let a = b;} fn b() {let a = 2;} let a = 1;";
     let mut parser = Parser::new(&source);
-    let r = parser.stmt()?;
-    println!("{r}");
+    let r = parser.parse()?;
+    println!("{r:?}");
     Ok(())
 }

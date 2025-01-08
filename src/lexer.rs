@@ -76,6 +76,7 @@ pub enum TokenKind {
     Union,
     TagUnion,
     Type,
+    Fn,
 
     // Basic Types
     Void,
@@ -151,6 +152,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Union => write!(f, "'union'"),
             TokenKind::TagUnion => write!(f, "'tagUnion'"),
             TokenKind::Type => write!(f, "'type'"),
+            TokenKind::Fn => write!(f, "'fn'"),
             TokenKind::Eof => write!(f, "'eof'"),
             TokenKind::Void => write!(f, "'void'"),
             TokenKind::Char => write!(f, "'char'"),
@@ -302,6 +304,7 @@ impl<'src> Iterator for Lexer<'src> {
                         "union" => Union,
                         "tagunion" => TagUnion,
                         "type" => Type,
+                        "fn" => Fn,
                         "true" => True,
                         "false" => False,
                         "void" => Void,
@@ -421,11 +424,22 @@ impl<'src> Iterator for Lexer<'src> {
                                 })
                             }
                             '-' => {
+                                if self.rest.starts_with(">") {
+                                    let token =
+                                        char_onwards[..char_str.len() + '>'.len_utf8()].to_string();
+                                    self.offset += '>'.len_utf8();
+                                    self.rest = &self.rest['>'.len_utf8()..];
+                                    return Some(Token {
+                                        kind: TokenKind::Arrow,
+                                        token,
+                                        offset: char_offset,
+                                    });
+                                };
                                 return Some(Token {
                                     kind: TokenKind::Minus,
                                     token: char_str.to_string(),
                                     offset: char_offset,
-                                })
+                                });
                             }
                             '>' => {
                                 return Some(Token {
@@ -524,7 +538,7 @@ mod tests {
 
     #[test]
     fn double_char_tokens() {
-        let source = "+= ++ -= -- *= /= == != <= >= << >>";
+        let source = "+= ++ -= -- *= /= == != <= >= << >> ->";
         let lexer = Lexer::new(&source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);

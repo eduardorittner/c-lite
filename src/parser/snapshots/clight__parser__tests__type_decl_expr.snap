@@ -1,16 +1,14 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
 Err(
     MietteDiagnostic {
-        message: "Expected struct name",
+        message: "Expected a valid type, got: 'decimal'",
         code: None,
         severity: None,
-        help: Some(
-            "Unexpected token: Token { kind: Void, token: \"void\", offset: 7 }",
-        ),
+        help: None,
         url: None,
         labels: Some(
             [
@@ -20,9 +18,9 @@ Err(
                     ),
                     span: SourceSpan {
                         offset: SourceOffset(
-                            7,
+                            17,
                         ),
-                        length: 4,
+                        length: 1,
                     },
                     primary: false,
                 },

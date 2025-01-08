@@ -65,8 +65,13 @@ snapshot_kind: text
         offset: 33,
     },
     Token {
+        kind: Arrow,
+        token: "->",
+        offset: 36,
+    },
+    Token {
         kind: Eof,
         token: "",
-        offset: 35,
+        offset: 38,
     },
 ]

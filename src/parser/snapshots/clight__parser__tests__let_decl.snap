@@ -1,5 +1,5 @@
 ---
-source: src/parser.rs
+source: src/parser/mod.rs
 expression: result
 snapshot_kind: text
 ---
@@ -16,17 +16,30 @@ Ok(
                 token: "a",
                 offset: 4,
             },
-            spec: None,
+            spec: Some(
+                TypeSpec {
+                    token: Token {
+                        kind: Int,
+                        token: "int",
+                        offset: 7,
+                    },
+                    kind: Type,
+                },
+            ),
             init: Scalar(
                 Binary {
                     lhs: Binary {
-                        lhs: Number(
-                            1,
+                        lhs: Ident(
+                            Token {
+                                kind: Ident,
+                                token: "b",
+                                offset: 13,
+                            },
                         ),
                         op: Token {
                             kind: Plus,
                             token: "+",
-                            offset: 10,
+                            offset: 15,
                         },
                         rhs: Binary {
                             lhs: Number(
@@ -35,7 +48,7 @@ Ok(
                             op: Token {
                                 kind: Star,
                                 token: "*",
-                                offset: 14,
+                                offset: 19,
                             },
                             rhs: Number(
                                 3,
@@ -43,23 +56,13 @@ Ok(
                         },
                     },
                     op: Token {
-                        kind: SmallerSmaller,
-                        token: "<<",
-                        offset: 18,
+                        kind: Plus,
+                        token: "+",
+                        offset: 23,
                     },
-                    rhs: Binary {
-                        lhs: Number(
-                            4,
-                        ),
-                        op: Token {
-                            kind: Plus,
-                            token: "+",
-                            offset: 23,
-                        },
-                        rhs: Number(
-                            2,
-                        ),
-                    },
+                    rhs: Number(
+                        1,
+                    ),
                 },
             ),
         },
