@@ -172,8 +172,7 @@ impl<'src> Parser<'src> {
             TokenKind::OpenBrace => Ok(StmtKind::Block {
                 statements: self.block()?,
             }),
-
-            _ => unreachable!(),
+            token => Err(miette::miette!("Expected statement, got: {token}")),
         }
     }
 
@@ -674,7 +673,7 @@ impl<'src> Parser<'src> {
                     };
                 }
                 // TODO handle '->' and '.'
-                _ => unreachable!(),
+                _ => todo!(),
             }
         }
 
