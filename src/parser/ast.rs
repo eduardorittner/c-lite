@@ -163,7 +163,7 @@ impl PrettyPrint for ExternalDecl {
     fn pretty_fmt(&self, depth: usize) -> String {
         match self {
             ExternalDecl::Decl(decl) => {
-                format!("{}", decl.indent_fmt(depth))
+                decl.indent_fmt(depth).to_string()
             }
             ExternalDecl::FnDecl(fn_decl, block) => {
                 format!(
@@ -295,15 +295,15 @@ impl PrettyPrint for StmtKind {
             StmtKind::Block { ref statements } => {
                 let mut result = String::from("Statements:\n");
                 for stmt in statements {
-                    let _ = write!(result, "{}\n", stmt.indent_fmt(depth + 1));
+                    let _ = writeln!(result, "{}", stmt.indent_fmt(depth + 1));
                 }
                 result
             }
             StmtKind::Decl { ref declaration } => {
-                format!("{}", declaration.pretty_fmt(depth))
+                declaration.pretty_fmt(depth).to_string()
             }
             StmtKind::Expression { ref expression } => {
-                format!("{}", expression.pretty_fmt(depth))
+                expression.pretty_fmt(depth).to_string()
             }
             StmtKind::If {
                 token: _,

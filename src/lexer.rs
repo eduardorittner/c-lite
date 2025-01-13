@@ -191,7 +191,7 @@ impl<'src> Lexer<'src> {
     }
 }
 
-impl<'src> Iterator for Lexer<'src> {
+impl Iterator for Lexer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -531,7 +531,7 @@ mod tests {
     #[test]
     fn single_char_tokens() {
         let source = "+ - * / = . , : ; ! ~ & | % [ ]";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -539,7 +539,7 @@ mod tests {
     #[test]
     fn double_char_tokens() {
         let source = "+= ++ -= -- *= /= == != <= >= << >> ->";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -547,7 +547,7 @@ mod tests {
     #[test]
     fn keyword() {
         let source = "if for while return struct enum union tagunion type";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -555,7 +555,7 @@ mod tests {
     #[test]
     fn idents() {
         let source = "ident _ident ident_123";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -563,7 +563,7 @@ mod tests {
     #[test]
     fn number_literals() {
         let source = "1234 0x9821 0b011 0xfe10 100`000`000_1";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -571,7 +571,7 @@ mod tests {
     #[test]
     fn string_literals() {
         let source = "\"abc\" 'abc' \"abc'\" 'abc\"'";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<Token> = lexer.into_iter().collect();
         assert_debug_snapshot!(result);
     }
@@ -588,14 +588,14 @@ mod tests {
     #[should_panic]
     fn invalid_char() {
         let source = "🚫";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let _: Vec<Token> = lexer.into_iter().collect();
     }
 
     #[test]
     fn test_display() {
         let source = "ident 0x1f 0b10 23 \"string\" + += - -= / /= * *= % = ! & ^ ~ | ? ^= == != && ^^ <= || < >= > ++ -- >> << ( ) [ ] { } , . : ; -> true false for if else return while let enum struct union tagunion type void char int uint float bool)";
-        let lexer = Lexer::new(&source);
+        let lexer = Lexer::new(source);
         let result: Vec<String> = lexer.into_iter().map(|t| t.kind.to_string()).collect();
         assert_debug_snapshot!(result);
     }

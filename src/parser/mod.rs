@@ -107,7 +107,7 @@ impl<'src> Parser<'src> {
         let name = self.expect(TokenKind::Ident, "Expected function name")?;
         let params = self.params()?;
 
-        let ret = if let Some(_) = match_next!(self, TokenKind::Arrow) {
+        let ret = if match_next!(self, TokenKind::Arrow).is_some() {
             Some(self.type_spec()?)
         } else {
             None
@@ -210,7 +210,7 @@ impl<'src> Parser<'src> {
             cond,
             iftrue: Box::new(ifstmt),
             else_token,
-            iffalse: else_stmt.map(|b| Box::new(b)),
+            iffalse: else_stmt.map(Box::new),
         })
     }
 
@@ -308,7 +308,7 @@ impl<'src> Parser<'src> {
                 r#type: spec,
             });
 
-            if let Some(_) = match_next!(self, TokenKind::Comma) {
+            if match_next!(self, TokenKind::Comma).is_some() {
             } else {
                 break;
             }
@@ -411,7 +411,7 @@ impl<'src> Parser<'src> {
     pub fn conditional_expr(&mut self) -> Result<ExprKind> {
         let mut expr = self.or()?;
 
-        while let Some(_) = match_next!(self, TokenKind::Question) {
+        while match_next!(self, TokenKind::Question).is_some() {
             let yes = self.expr()?;
             self.expect(
                 TokenKind::Colon,
@@ -660,11 +660,11 @@ impl<'src> Parser<'src> {
                         "Expected closing brace ']' after index expression",
                     )?;
                     // TODO expr = index_desugar(expr, index)
-                    let expr = todo!();
+                    todo!();
                 }
                 TokenKind::OpenParen => {
                     // TODO parse args-list
-                    let expr = todo!();
+                    todo!();
                 }
                 TokenKind::PlusPlus | TokenKind::MinusMinus => {
                     expr = ExprKind::Postfix {
@@ -757,7 +757,7 @@ impl<'src> Parser<'src> {
 
         let digits = token.token.strip_prefix("0b").unwrap();
 
-        if let Ok(n) = u64::from_str_radix(&digits, 2) {
+        if let Ok(n) = u64::from_str_radix(digits, 2) {
             Ok(ExprKind::Number(n))
         } else {
             Err(miette::miette! {
@@ -775,7 +775,7 @@ impl<'src> Parser<'src> {
 
         let digits = token.token.strip_prefix("0x").unwrap();
 
-        if let Ok(n) = u64::from_str_radix(&digits, 16) {
+        if let Ok(n) = u64::from_str_radix(digits, 16) {
             Ok(ExprKind::Number(n))
         } else {
             Err(miette::miette! {
@@ -793,7 +793,7 @@ pub mod tests {
     use insta::assert_debug_snapshot;
 
     fn parse_expr(expr: &str) -> String {
-        let mut parser = Parser::new(&expr);
+        let mut parser = Parser::new(expr);
         parser.expr().unwrap().to_string()
     }
 
@@ -877,7 +877,7 @@ pub mod tests {
     #[test]
     fn long_expr() {
         let source = "b + 2 * 3 + 1 << 1 | 10000";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.expr();
         assert_debug_snapshot!(result);
     }
@@ -885,7 +885,7 @@ pub mod tests {
     #[test]
     fn compound_expr() {
         let source = "a += 2 * 3 + -var";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.expr();
         assert_debug_snapshot!(result);
     }
@@ -893,7 +893,7 @@ pub mod tests {
     #[test]
     fn comma_expr() {
         let source = "a + 2, a++ + 3, -1 * a++ - ++b";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.expr();
         assert_debug_snapshot!(result);
     }
@@ -908,7 +908,7 @@ pub mod tests {
     #[test]
     fn var_decl_with_type() {
         let source = "let a: int = 202";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result);
     }
@@ -916,7 +916,7 @@ pub mod tests {
     #[test]
     fn var_decl_no_type() {
         let source = "let a = 202";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result);
     }
@@ -924,7 +924,7 @@ pub mod tests {
     #[test]
     fn var_decl_complicated_expr() {
         let source = "let a = 1 + 2 * 3 << 4 + (2)";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result);
     }
@@ -932,7 +932,7 @@ pub mod tests {
     #[test]
     fn var_decl_unary_expr() {
         let source = "let a = !1";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result);
     }
@@ -940,7 +940,7 @@ pub mod tests {
     #[test]
     fn type_decl() {
         let source = "type mytype = int";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -948,7 +948,7 @@ pub mod tests {
     #[test]
     fn type_decl_usertype() {
         let source = "type mytype = myusertype";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -957,7 +957,7 @@ pub mod tests {
     fn type_decl_expr() {
         // Assert that we get an error
         let source = "type wrongtype = 1";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -965,7 +965,7 @@ pub mod tests {
     #[test]
     fn invalid_decl_start() {
         let source = "void wrongtype = 1";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -973,7 +973,7 @@ pub mod tests {
     #[test]
     fn empty_decl() {
         let source = "";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -981,7 +981,7 @@ pub mod tests {
     #[test]
     fn struct_decl() {
         let source = "struct a { field: void }";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -989,7 +989,7 @@ pub mod tests {
     #[test]
     fn composite_struct_decl() {
         let source = "struct b { field: void, this: char}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -997,7 +997,7 @@ pub mod tests {
     #[test]
     fn wrong_struct_decl() {
         let source = "struct b {}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -1005,7 +1005,7 @@ pub mod tests {
     #[test]
     fn struct_name_as_type() {
         let source = "struct void {a: char}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -1013,7 +1013,7 @@ pub mod tests {
     #[test]
     fn if_statement() {
         let source = "if (a == 2) {let b = 2;} else { let b = 3;}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.stmt();
         assert_debug_snapshot!(result)
     }
@@ -1021,7 +1021,7 @@ pub mod tests {
     #[test]
     fn compound_if_stmt() {
         let source = "if (false) {if (true) {let a = 1;} b = 1;} else { let b = 3;}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.stmt();
         assert_debug_snapshot!(result)
     }
@@ -1029,7 +1029,7 @@ pub mod tests {
     #[test]
     fn block_stmt() {
         let source = "{let a = 1; let b = 2 + 3 * 5;}";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.stmt();
         assert_debug_snapshot!(result)
     }
@@ -1037,7 +1037,7 @@ pub mod tests {
     #[test]
     fn let_decl() {
         let source = "let a: int = b + 2 * 3 + 1;";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.decl();
         assert_debug_snapshot!(result)
     }
@@ -1045,7 +1045,7 @@ pub mod tests {
     #[test]
     fn let_decl_without_semicolon() {
         let source = "let a = 1";
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
         let result = parser.stmt(); // We parse as stmt since .decl() does not consume semicolons
         assert_debug_snapshot!(result)
     }
