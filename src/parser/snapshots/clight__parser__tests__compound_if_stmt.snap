@@ -33,7 +33,7 @@ Ok(
                                         token: "let",
                                         offset: 23,
                                     },
-                                    kind: VarDecl {
+                                    kind: Var {
                                         ident: Token {
                                             kind: Ident,
                                             token: "a",
@@ -91,7 +91,7 @@ Ok(
                                 token: "let",
                                 offset: 50,
                             },
-                            kind: VarDecl {
+                            kind: Var {
                                 ident: Token {
                                     kind: Ident,
                                     token: "b",

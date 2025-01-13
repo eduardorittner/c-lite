@@ -16,16 +16,16 @@ pub struct Decl {
 
 #[derive(Debug, Clone)]
 pub enum DeclKind {
-    VarDecl {
+    Var {
         ident: Token,
         spec: Option<TypeSpec>,
         init: Init,
     },
-    TypeDecl {
+    Type {
         oldtype: TypeSpec,
         newtype: Token,
     },
-    StructDecl {
+    Struct {
         name: Token,
         fields: Vec<Field>,
     },
@@ -54,7 +54,7 @@ pub enum TypeSpecKind {
 #[derive(Debug, Clone)]
 pub enum Init {
     Scalar(ExprKind),
-    Aggregate(Vec<Box<Init>>),
+    Aggregate(Vec<Init>),
 }
 
 #[derive(Debug, Clone)]
@@ -162,9 +162,7 @@ pub trait PrettyPrint {
 impl PrettyPrint for ExternalDecl {
     fn pretty_fmt(&self, depth: usize) -> String {
         match self {
-            ExternalDecl::Decl(decl) => {
-                decl.indent_fmt(depth).to_string()
-            }
+            ExternalDecl::Decl(decl) => decl.indent_fmt(depth).to_string(),
             ExternalDecl::FnDecl(fn_decl, block) => {
                 format!(
                     "{}{}",
@@ -179,7 +177,7 @@ impl PrettyPrint for ExternalDecl {
 impl PrettyPrint for Decl {
     fn pretty_fmt(&self, depth: usize) -> String {
         match self.kind {
-            DeclKind::VarDecl {
+            DeclKind::Var {
                 ref ident,
                 ref spec,
                 ref init,
@@ -199,7 +197,7 @@ impl PrettyPrint for Decl {
                     )
                 }
             }
-            DeclKind::TypeDecl {
+            DeclKind::Type {
                 oldtype: ref spec,
                 ref newtype,
             } => {
@@ -210,7 +208,7 @@ impl PrettyPrint for Decl {
                     newtype.token
                 )
             }
-            DeclKind::StructDecl {
+            DeclKind::Struct {
                 ref name,
                 ref fields,
             } => {
@@ -299,12 +297,8 @@ impl PrettyPrint for StmtKind {
                 }
                 result
             }
-            StmtKind::Decl { ref declaration } => {
-                declaration.pretty_fmt(depth).to_string()
-            }
-            StmtKind::Expression { ref expression } => {
-                expression.pretty_fmt(depth).to_string()
-            }
+            StmtKind::Decl { ref declaration } => declaration.pretty_fmt(depth).to_string(),
+            StmtKind::Expression { ref expression } => expression.pretty_fmt(depth).to_string(),
             StmtKind::If {
                 token: _,
                 else_token: _,

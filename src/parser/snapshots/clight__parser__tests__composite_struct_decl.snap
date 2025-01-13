@@ -10,7 +10,7 @@ Ok(
             token: "struct",
             offset: 0,
         },
-        kind: StructDecl {
+        kind: Struct {
             name: Token {
                 kind: Ident,
                 token: "b",

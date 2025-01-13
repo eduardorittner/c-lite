@@ -501,7 +501,7 @@ impl Iterator for Lexer<'_> {
                         .find(|(i, c)| {
                             *i != 0
                                 && *c == char
-                                && (*i == 0 || char_onwards.chars().nth(i - 1).unwrap() != '\\')
+                                && char_onwards.chars().nth(i - 1).unwrap() != '\\'
                         })
                         .map(|(i, c)| i + c.len_utf8())
                         .unwrap_or(char_onwards.len());

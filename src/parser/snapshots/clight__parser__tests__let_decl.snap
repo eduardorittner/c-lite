@@ -10,7 +10,7 @@ Ok(
             token: "let",
             offset: 0,
         },
-        kind: VarDecl {
+        kind: Var {
             ident: Token {
                 kind: Ident,
                 token: "a",

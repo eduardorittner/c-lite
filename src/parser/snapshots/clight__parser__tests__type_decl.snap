@@ -10,7 +10,7 @@ Ok(
             token: "type",
             offset: 0,
         },
-        kind: TypeDecl {
+        kind: Type {
             oldtype: TypeSpec {
                 token: Token {
                     kind: Int,

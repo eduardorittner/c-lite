@@ -268,7 +268,7 @@ impl<'src> Parser<'src> {
         let init = self.initializer()?;
         Ok(Decl {
             token,
-            kind: DeclKind::VarDecl { ident, spec, init },
+            kind: DeclKind::Var { ident, spec, init },
         })
     }
 
@@ -279,7 +279,7 @@ impl<'src> Parser<'src> {
         if let Ok(oldtype) = self.type_spec() {
             Ok(Decl {
                 token,
-                kind: DeclKind::TypeDecl { oldtype, newtype },
+                kind: DeclKind::Type { oldtype, newtype },
             })
         } else {
             let wrong_token = self.advance().unwrap();
@@ -325,7 +325,7 @@ impl<'src> Parser<'src> {
         self.expect(TokenKind::CloseBrace, "Expected close brace")?;
         Ok(Decl {
             token: struct_token,
-            kind: DeclKind::StructDecl { name, fields },
+            kind: DeclKind::Struct { name, fields },
         })
     }
 
